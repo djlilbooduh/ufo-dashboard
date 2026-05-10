@@ -95,28 +95,74 @@ async function loadData() {
   }
 }
 
+let allCities = [];
+let selectedCity = 'San Diego city, California';
+let activeIdx = -1;
+
 function populateDropdown() {
-  const sel = document.getElementById('citySelect');
-  sel.innerHTML = '';
-  // Sort cities by population descending
-  const sorted = Object.keys(censusData.cities).sort((a, b) =>
-    censusData.cities[b].population.total - censusData.cities[a].population.total
-  );
-  sorted.forEach(key => {
-    const opt = document.createElement('option');
-    opt.value = key;
-    // Clean display: strip 'city, California' / 'town, California'
-    const displayName = key.replace(/ (city|town), California$/, ', CA');
-    opt.textContent = '📍 ' + displayName;
-    // Default select San Diego
-    if (key === 'San Diego city, California') opt.selected = true;
-    sel.appendChild(opt);
+  // Sort alphabetically, strip city/town suffix for sort
+  allCities = Object.keys(censusData.cities).sort((a, b) => {
+    const na = a.replace(/ (city|town), California$/, '');
+    const nb = b.replace(/ (city|town), California$/, '');
+    return na.localeCompare(nb);
   });
+  const input = document.getElementById('citySearch');
+  input.value = 'San Diego, CA';
+  input.placeholder = '🔍 Search ' + allCities.length + ' cities…';
+  filterCities();
+  loadCity();
 }
 
+function cleanName(key) {
+  return key.replace(/ (city|town), California$/, ', CA');
+}
+
+function filterCities() {
+  const query = document.getElementById('citySearch').value.toLowerCase();
+  const dd = document.getElementById('cityDropdown');
+  const matches = allCities.filter(k => cleanName(k).toLowerCase().includes(query));
+  
+  if (matches.length === 0) {
+    dd.innerHTML = '<div class="no-results">No cities match</div>';
+  } else {
+    dd.innerHTML = matches.map((k, i) => {
+      const cls = (k === selectedCity ? ' active' : '') + (i === activeIdx ? ' active' : '');
+      return `<div class="item${cls}" data-key="${k.replace(/"/g, '&quot;')}" onmousedown="selectCity('${k.replace(/'/g, "\\'")}')">📍 ${cleanName(k)}</div>`;
+    }).join('');
+  }
+  dd.classList.add('show');
+  activeIdx = -1;
+}
+
+function showDropdown() {
+  filterCities();
+}
+
+function handleKey(e) {
+  const dd = document.getElementById('cityDropdown');
+  const items = dd.querySelectorAll('.item');
+  if (e.key === 'ArrowDown') { activeIdx = Math.min(activeIdx + 1, items.length - 1); filterCities(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { activeIdx = Math.max(activeIdx - 1, 0); filterCities(); e.preventDefault(); }
+  else if (e.key === 'Enter') { if (activeIdx >= 0 && items[activeIdx]) items[activeIdx].click(); e.preventDefault(); }
+  else if (e.key === 'Escape') { dd.classList.remove('show'); }
+}
+
+function selectCity(key) {
+  selectedCity = key;
+  document.getElementById('citySearch').value = cleanName(key);
+  document.getElementById('cityDropdown').classList.remove('show');
+  loadCity();
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.city-search')) {
+    document.getElementById('cityDropdown').classList.remove('show');
+  }
+});
+
 function loadCity() {
-  const city = document.getElementById('citySelect').value;
-  const d = censusData.cities[city];
+  const d = censusData.cities[selectedCity];
   if (!d) return;
   renderPopulation(d);
   renderRace(d);
