@@ -91,8 +91,11 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
 <script>
 // ══════════════ SAN DIEGO CENSUS DATA (embedded) ══════════════
 const DATA_URL = 'census_data.json';
+const COUNTY_URL = 'county_voting.json';
 let allCities = null;
 let allCityKeys = [];
+let countyData = null;
+let cityCountyMap = {};
 let activeIdx = -1;
 let currentCity = 'San Diego city, California';
 let currentData = null;
@@ -314,70 +317,94 @@ function renderVoting(year) {
   document.getElementById('votingTable').innerHTML = html;
 }
 
+function getCountyForCity() {
+  if (countyData && countyData.city_county_map && countyData.city_county_map[currentCity]) {
+    const fips = countyData.city_county_map[currentCity];
+    if (countyData.counties && countyData.counties[fips]) {
+      return { fips: fips, data: countyData.counties[fips] };
+    }
+  }
+  return null;
+}
+
 function renderSDVoting(year) {
-  const d = SD_VOTE.presidential[year];
-  if (!d) return '';
+  const county = getCountyForCity();
+  const countyName = county ? county.data.name : 'San Diego County';
   
-  let h = `<div class="card" style="margin:1.5rem auto;max-width:1200px"><h2>🗳️ San Diego County Presidential Results</h2>`;
+  let presData, regData;
+  if (county && county.data.presidential && county.data.presidential[year]) {
+    presData = county.data.presidential[year];
+    regData = county.data.registration || SD_VOTE.registered;
+  } else {
+    // Fallback to embedded San Diego
+    presData = SD_VOTE.presidential[year];
+    regData = SD_VOTE.registered;
+  }
+  if (!presData) return '';
+  
+  let h = `<div class="card" style="margin:1.5rem auto;max-width:1200px"><h2>🗳️ ${countyName} Presidential Results</h2>`;
   h += `<div style="display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem">`;
-  Object.keys(SD_VOTE.presidential).forEach(y => {
-    h += `<div class="year-btn${y==year?' active':''}" onclick="renderAllSDVoting('${y}')">${y}</div>`;
+  const years = county && county.data.presidential ? Object.keys(county.data.presidential) : Object.keys(SD_VOTE.presidential);
+  years.forEach(yr => {
+    h += `<div class="year-btn${yr==year?' active':''}" onclick="renderAllSDVoting('${yr}')">${yr}</div>`;
   });
   h += `</div>`;
 
-  // Result bars
-  const maxPct = Math.max(d.dem_pct, d.gop_pct);
+  const margin = presData.dem_pct - presData.gop_pct;
+  const marginColor = margin > 0 ? 'var(--ac)' : 'var(--sc)';
+  const marginLabel = margin > 0 ? 'D+' : 'R+';
+
   h += `<div style="margin-bottom:.75rem">
-    <div class="stat-row"><span class="stat-label">${d.dem} (D)</span><span class="stat-val" style="color:var(--ac)">${d.dem_pct}%</span></div>
-    <div class="bar-bg"><div class="bar-fill" style="width:${d.dem_pct}%;background:var(--ac)"></div></div>
-    <div class="stat-row" style="margin-top:.5rem"><span class="stat-label">${d.gop} (R)</span><span class="stat-val" style="color:var(--sc)">${d.gop_pct}%</span></div>
-    <div class="bar-bg"><div class="bar-fill" style="width:${d.gop_pct}%;background:var(--sc)"></div></div>
+    <div class="stat-row"><span class="stat-label">Democratic</span><span class="stat-val" style="color:var(--ac)">${presData.dem_pct}%</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${presData.dem_pct}%;background:var(--ac)"></div></div>
+    <div class="stat-row" style="margin-top:.5rem"><span class="stat-label">Republican</span><span class="stat-val" style="color:var(--sc)">${presData.gop_pct}%</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${presData.gop_pct}%;background:var(--sc)"></div></div>
   </div>`;
 
-  // Stats row
   h += `<div class="grid" style="grid-template-columns:repeat(3,1fr);margin:1rem 0;padding:0">
     <div style="text-align:center;padding:.5rem">
       <div class="big-label">Margin</div>
-      <div class="big-num" style="font-size:1.3rem;color:var(--ac)">D+${(d.dem_pct - d.gop_pct).toFixed(1)}</div>
+      <div class="big-num" style="font-size:1.3rem;color:${marginColor}">${marginLabel}${Math.abs(margin).toFixed(1)}</div>
     </div>
     <div style="text-align:center;padding:.5rem">
       <div class="big-label">Total Votes</div>
-      <div class="big-num" style="font-size:1.3rem">${(d.total_votes/1e6).toFixed(2)}M</div>
+      <div class="big-num" style="font-size:1.3rem">${presData.total_votes ? (presData.total_votes/1e6).toFixed(2)+'M' : '—'}</div>
     </div>
     <div style="text-align:center;padding:.5rem">
       <div class="big-label">Voter Turnout</div>
-      <div class="big-num" style="font-size:1.3rem;color:var(--uc)">${d.turnout}%</div>
+      <div class="big-num" style="font-size:1.3rem;color:var(--uc)">${presData.turnout ? presData.turnout+'%' : '—'}</div>
     </div>
   </div>
 
   <div style="font-size:.72rem;color:var(--mu);margin-top:.5rem">
-    📋 <strong>Source:</strong> California Secretary of State, Statement of Vote. San Diego County results.
-    Turnout calculated as total votes cast / registered voters.
+    📋 <strong>Source:</strong> California Secretary of State, Statement of Vote.
   </div></div>`;
 
   // Voter Registration
-  const reg = SD_VOTE.registered;
-  h += `<div class="card" style="margin:1rem auto;max-width:1200px"><h2>📋 San Diego County Voter Registration (2024)</h2>`;
-  h += `<div class="stat-row"><span class="stat-label">Total Registered Voters</span><span class="stat-val" style="color:var(--ac)">${fmt(reg.total)}</span></div>`;
+  h += `<div class="card" style="margin:1rem auto;max-width:1200px"><h2>📋 ${countyName} Voter Registration (2024)</h2>`;
+  const regTotal = regData.total || (regData.total_registered || 0);
+  h += `<div class="stat-row"><span class="stat-label">Total Registered Voters</span><span class="stat-val" style="color:var(--ac)">${fmt(regTotal)}</span></div>`;
   
   const regParties = [
-    {label:"Democratic", pct:reg.dem, color:"var(--ac)"},
-    {label:"No Party Preference", pct:reg.npp, color:"var(--mu)"},
-    {label:"Republican", pct:reg.gop, color:"var(--sc)"},
-    {label:"Other", pct:reg.other, color:"#8888aa"}
+    {label:"Democratic", pct:regData.dem_pct||regData.dem||0, color:"var(--ac)"},
+    {label:"No Party Preference", pct:regData.npp_pct||regData.npp||0, color:"var(--mu)"},
+    {label:"Republican", pct:regData.gop_pct||regData.gop||0, color:"var(--sc)"},
+    {label:"Other", pct:regData.other_pct||regData.other||0, color:"#8888aa"}
   ];
   regParties.forEach(p => {
     h += `<div class="stat-row" style="margin-top:.4rem"><span class="stat-label">${p.label}</span><span class="stat-val" style="color:${p.color}">${p.pct}%</span></div>`;
     h += `<div class="bar-bg"><div class="bar-fill" style="width:${p.pct}%;background:${p.color}"></div></div>`;
   });
-  h += `<div style="font-size:.72rem;color:var(--mu);margin-top:.75rem">📋 <strong>Source:</strong> San Diego County Registrar of Voters, 2024 General Election registration report.</div>`;
+  h += `<div style="font-size:.72rem;color:var(--mu);margin-top:.75rem">📋 <strong>Source:</strong> California Secretary of State, Report of Registration.</div>`;
   h += `</div>`;
 
   return h;
 }
 
+let currentVoteYear = '2024';
 function renderAllSDVoting(year) {
-  document.getElementById('sdVotingSection').innerHTML = renderSDVoting(year);
+  currentVoteYear = year || '2024';
+  document.getElementById('sdVotingSection').innerHTML = renderSDVoting(currentVoteYear);
 }
 
 // ── CITY SEARCH & LOADING ──
@@ -460,10 +487,25 @@ function showTab(tab) {
   if (tab === 'voting' && !document.getElementById('votingTable').innerHTML) renderVoting('2024');
 }
 
+async function loadCountyData() {
+  try {
+    const r = await fetch(COUNTY_URL + '?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    countyData = await r.json();
+    // Refresh voting section if visible
+    if (document.getElementById('sdVotingSection').innerHTML.trim()) {
+      renderAllSDVoting(currentVoteYear);
+    }
+  } catch(e) {
+    console.log('County data deferred:', e.message);
+  }
+}
+
 // Boot
 currentData = SD;
 renderCensus();
 loadAllCities();
+loadCountyData();
 </script>
 </body>
 </html>
