@@ -626,8 +626,9 @@ CITIES.forEach(c => {
     </div>
   `);
 
-  // Hover effects
+  // Hover effects — only for non-filtered markers
   marker.on('mouseover', function(e) {
+    if (this._filtered) return;
     this.setStyle({
       radius: radius * 1.5,
       fillOpacity: 0.95,
@@ -640,6 +641,7 @@ CITIES.forEach(c => {
       `<strong>${c.name}</strong> · Pop: ${c.population.toLocaleString()} · Income: $${c.income.toLocaleString()} · ${leanVal}`;
   });
   marker.on('mouseout', function(e) {
+    if (this._filtered) return;
     this.setStyle({
       radius: radius,
       fillOpacity: popOpacity(c.population),
@@ -647,6 +649,13 @@ CITIES.forEach(c => {
       color: 'rgba(255,255,255,0.25)'
     });
     updateInfoText();
+  });
+
+  // Prevent clicks on filtered-out markers from opening popups
+  marker.on('click', function(e) {
+    if (this._filtered) {
+      this.closePopup();
+    }
   });
 
   marker.addTo(map);
