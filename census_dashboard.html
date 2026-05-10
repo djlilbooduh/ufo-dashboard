@@ -188,31 +188,33 @@ const SD_VOTE = {
 };
 
 // ══════════════ RENDER ══════════════
-function fmt(n) { return n.toLocaleString(); }
+function fmt(n) { if (n == null) return '—'; return n.toLocaleString(); }
 
 function renderCensus() {
   const d = currentData || SD;
   // Population cards
+  const hasPop = d.population && d.population.total != null;
+  const hasEcon = d.economics && d.economics.median_household_income != null;
   document.getElementById('popCards').innerHTML = `
     <div class="card" style="text-align:center">
       <div class="big-label">Total Population</div>
-      <div class="big-num">${fmt(d.population.total)}</div>
+      <div class="big-num">${hasPop ? fmt(d.population.total) : '—'}</div>
       <div class="stat-sub">${cleanCityName(currentCity)} · ACS ${d.year}</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Voting Age (18+)</div>
-      <div class="big-num">${fmt(d.population.voting_age)}</div>
-      <div class="stat-sub">${d.population.voting_age_pct}% of population</div>
+      <div class="big-num">${hasPop && d.population.voting_age != null ? fmt(d.population.voting_age) : '—'}</div>
+      <div class="stat-sub">${hasPop && d.population.voting_age_pct != null ? d.population.voting_age_pct + '% of population' : ''}</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Median Household Income</div>
-      <div class="big-num">$${fmt(d.economics.median_household_income)}</div>
+      <div class="big-num">${hasEcon ? '$' + fmt(d.economics.median_household_income) : '—'}</div>
       <div class="stat-sub">${d.year} inflation-adjusted dollars</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Poverty Rate</div>
-      <div class="big-num" style="color:var(--cf)">${d.economics.poverty_pct}%</div>
-      <div class="stat-sub">${fmt(d.economics.poverty_count)} residents below poverty line</div>
+      <div class="big-num" style="color:var(--cf)">${hasEcon && d.economics.poverty_pct != null ? d.economics.poverty_pct + '%' : '—'}</div>
+      <div class="stat-sub">${hasEcon ? fmt(d.economics.poverty_count) + ' residents below poverty line' : ''}</div>
     </div>`;
 
   // Race bars
@@ -232,24 +234,25 @@ function renderCensus() {
   document.getElementById('raceSection').innerHTML = raceHtml;
 
   // Economics + Education
-  const eduTotal = d.education.bachelors_or_higher;
-  const eduPct = (eduTotal / (d.population.total * 0.75) * 100).toFixed(1);
+  const hasEdu = d.education && d.education.bachelors_or_higher != null;
+  const eduTotal = hasEdu ? d.education.bachelors_or_higher : 0;
+  const eduPct = hasEdu && d.population.total ? (eduTotal / (d.population.total * 0.75) * 100).toFixed(1) : 0;
   document.getElementById('detailGrid').innerHTML = `
     <div class="card">
       <h2>💰 Economics</h2>
-      <div class="stat-row"><span class="stat-label">Median Household Income</span><span class="stat-val" style="color:var(--ac)">$${fmt(d.economics.median_household_income)}</span></div>
-      <div class="stat-row" style="margin-top:.75rem"><span class="stat-label">Below Poverty Line</span><span class="stat-val" style="color:var(--cf)">${d.economics.poverty_pct}%</span></div>
-      <div class="bar-bg"><div class="bar-fill" style="width:${d.economics.poverty_pct*5}%;background:var(--cf)"></div></div>
-      <div class="stat-row"><span class="stat-label">Residents in poverty</span><span class="stat-val">${fmt(d.economics.poverty_count)}</span></div>
+      <div class="stat-row"><span class="stat-label">Median Household Income</span><span class="stat-val" style="color:var(--ac)">${hasEcon ? '$' + fmt(d.economics.median_household_income) : '—'}</span></div>
+      <div class="stat-row" style="margin-top:.75rem"><span class="stat-label">Below Poverty Line</span><span class="stat-val" style="color:var(--cf)">${hasEcon && d.economics.poverty_pct != null ? d.economics.poverty_pct + '%' : '—'}</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${hasEcon ? d.economics.poverty_pct*5 : 0}%;background:var(--cf)"></div></div>
+      <div class="stat-row"><span class="stat-label">Residents in poverty</span><span class="stat-val">${hasEcon ? fmt(d.economics.poverty_count) : '—'}</span></div>
     </div>
     <div class="card">
       <h2>🎓 Education (Age 25+)</h2>
-      <div class="stat-row"><span class="stat-label">Bachelor's or Higher</span><span class="stat-val" style="color:var(--ac)">${fmt(eduTotal)}</span></div>
+      <div class="stat-row"><span class="stat-label">Bachelor's or Higher</span><span class="stat-val" style="color:var(--ac)">${hasEdu ? fmt(eduTotal) : '—'}</span></div>
       <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,eduPct)}%;background:var(--ac)"></div></div>
-      <div class="stat-row"><span class="stat-label">Bachelor's Degree</span><span class="stat-val">${fmt(d.education.bachelors_only)}</span></div>
-      <div class="stat-row"><span class="stat-label">Master's Degree</span><span class="stat-val">${fmt(d.education.masters)}</span></div>
-      <div class="stat-row"><span class="stat-label">Professional Degree</span><span class="stat-val">${fmt(d.education.professional)}</span></div>
-      <div class="stat-row"><span class="stat-label">Doctorate</span><span class="stat-val">${fmt(d.education.doctorate)}</span></div>
+      <div class="stat-row"><span class="stat-label">Bachelor's Degree</span><span class="stat-val">${hasEdu ? fmt(d.education.bachelors_only) : '—'}</span></div>
+      <div class="stat-row"><span class="stat-label">Master's Degree</span><span class="stat-val">${hasEdu ? fmt(d.education.masters) : '—'}</span></div>
+      <div class="stat-row"><span class="stat-label">Professional Degree</span><span class="stat-val">${hasEdu ? fmt(d.education.professional) : '—'}</span></div>
+      <div class="stat-row"><span class="stat-label">Doctorate</span><span class="stat-val">${hasEdu ? fmt(d.education.doctorate) : '—'}</span></div>
     </div>`;
   
   renderAllSDVoting('2024');
@@ -783,6 +786,13 @@ function selectCity(key) {
   document.getElementById('citySearch').value = cleanCityName(key);
   document.getElementById('cityDropdown').classList.remove('show');
   renderCensus();
+  // Re-render visible tabs so they reflect the new city
+  if (document.getElementById('tabVoting').style.display !== 'none') {
+    renderVoting(currentNationalYear);
+  }
+  if (document.getElementById('tabCrime').style.display !== 'none' && typeof crimeData !== 'undefined' && crimeData) {
+    renderCrimeTab();
+  }
 }
 
 document.addEventListener('click', function(e) {
