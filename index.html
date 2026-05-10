@@ -7,6 +7,20 @@ header h1{font-size:2.2rem;color:var(--ac);margin-bottom:.5rem;letter-spacing:-0
 header .byline{color:var(--mu);font-size:.85rem}
 .orig-link{color:var(--ac);text-decoration:none;font-size:.7rem;font-weight:600;border:1px solid rgba(79,195,247,.2);padding:.2rem .6rem;border-radius:4px;transition:background .2s;white-space:nowrap}
 .orig-link:hover{background:rgba(79,195,247,.1)}
+.facts-section{max-width:1200px;margin:1.5rem auto;padding:0 2rem}
+.facts-header{text-align:center;margin-bottom:1.5rem}
+.facts-header h2{font-size:1.5rem;color:var(--ac);margin-bottom:.25rem}
+.facts-sub{color:var(--mu);font-size:.85rem}
+.facts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.75rem}
+.fact-card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:1.25rem;transition:border-color .2s,transform .2s}
+.fact-card:hover{border-color:var(--ac);transform:translateY(-2px)}
+.fact-num{font-size:1.5rem;font-weight:700;color:var(--ac);margin-bottom:.5rem}
+.fact-text{color:var(--tx);font-size:.85rem;line-height:1.5}
+.facts-footer{text-align:center;margin-top:1.5rem;display:flex;gap:.75rem;align-items:center;justify-content:center;flex-wrap:wrap}
+.check-btn{background:rgba(79,195,247,.15);border:1px solid rgba(79,195,247,.35);color:var(--ac);padding:.6rem 1.5rem;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.check-btn:hover{background:rgba(79,195,247,.25);border-color:var(--ac)}
+.check-btn:disabled{opacity:.5;cursor:not-allowed}
+.check-status{color:var(--mu);font-size:.8rem}
 .alert{background:rgba(255,171,64,.08);border:1px solid rgba(255,171,64,.2);border-radius:8px;padding:.75rem 1rem;max-width:1200px;margin:1rem auto;color:var(--cf);font-size:.8rem;text-align:center}
 .st{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;padding:1.5rem 2rem;max-width:1200px;margin:0 auto}
 .sc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:1.25rem;text-align:center;transition:border-color .2s}
@@ -39,6 +53,26 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.75rem;border-to
 @media(max-width:600px){.fh{flex-direction:column}.ct{flex-direction:column}header h1{font-size:1.5rem}}
 </style></head><body>
 <header><h1>🛸 PURSUE — Release 01</h1><div class="byline">Presidential Unsealing and Reporting System for UAP Encounters</div><div class="byline" style="margin-top:.5rem">116 Files · 1,653 Pages · 0.1M Characters Analyzed</div><div class="byline" style="margin-top:.75rem">📋 <a href="https://www.war.gov/UFO/" target="_blank" rel="noopener" style="color:var(--ac);text-decoration:underline">Official PURSUE release page → war.gov/UFO</a> &nbsp;·&nbsp; 📰 <a href="https://www.war.gov/News/Releases/Release/Article/4480582/" target="_blank" rel="noopener" style="color:var(--ac);text-decoration:underline">DOW press release → May 8, 2026</a></div></header>
+<div class="facts-section" id="facts">
+<div class="facts-header">
+<h2>🔍 Key Facts — Release 01</h2>
+<div class="facts-sub">What to tell someone who still thinks the government isn't hiding anything</div>
+</div>
+<div class="facts-grid">
+<div class="fact-card"><div class="fact-num">116</div><div class="fact-text">Files declassified in a single day — the largest UAP document release in American history. Previous administrations released zero.</div></div>
+<div class="fact-card"><div class="fact-num">50</div><div class="fact-text">FBI case files spanning 1947–1968 proving the Bureau ran a sustained, multi-decade investigation into flying discs and UFOs — while publicly claiming no interest.</div></div>
+<div class="fact-card"><div class="fact-num">52</div><div class="fact-text">Department of War documents showing military pilots, operators, and sensors encountering objects performing maneuvers beyond known physics.</div></div>
+<div class="fact-card"><div class="fact-num">8</div><div class="fact-text">NASA files released — the space agency that once dismissed UAPs as "weather balloons" has now declassified its own unresolved anomaly reports.</div></div>
+<div class="fact-card"><div class="fact-num">1,653</div><div class="fact-text">Total pages of government documentation that was classified and hidden from public view for decades.</div></div>
+<div class="fact-card"><div class="fact-num">CONFIDENTIAL</div><div class="fact-text">Many files bore active classification markings when released — meaning they were still considered sensitive enough to keep from the public until now.</div></div>
+<div class="fact-card"><div class="fact-num">🌍</div><div class="fact-text">Reports span the globe: Middle East, Africa, Greece, United Arab Emirates, Japan, Georgia, Russia, and across the United States.</div></div>
+<div class="fact-card"><div class="fact-num">📡</div><div class="fact-text">Multiple sensor types documented: infrared, radar, visual — ruling out single-instrument error. These objects appeared on multiple independent systems.</div></div>
+</div>
+<div class="facts-footer">
+<button class="check-btn" onclick="checkNewRelease()" id="checkBtn">🔄 Check for New Releases</button>
+<span class="check-status" id="checkStatus"></span>
+</div>
+</div>
 <div class="st">
 <div class="sc"><div class="n">116</div><div class="l">Total Files</div></div>
 <div class="sc"><div class="n">1,653</div><div class="l">Total Pages</div></div>
@@ -518,6 +552,7 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.75rem;border-to
 <div class="fp"><p>This UNCLASSIFIED FBI document contains investigative records about unidentified flying objects and flying discs. This is an FBI 302 interview conducted with a US citizen regarding their first-hand account of a UAP encounter at a US test site. USPER described a &quot;bright light over the horizon.&quot;.</p><p>This is an FBI 302 interview conducted with a US citizen regarding their first-hand account of a UAP encounter at a US test site. USPER described a &quot;bright light over the horizon.&quot;.</p></div>
 <div class="fr"><a class="orig-link" href="https://www.war.gov/medialink/ufo/release_1/serial-4-redacted_redacted.pdf" target="_blank" rel="noopener">📎 View original PDF on war.gov</a><span>📅 5/8/26 · 📄 0 pg · 📝 0 chars</span></div>
 </div></div>
-<footer>Generated by Ky · OpenClaw · Raspberry Pi 5 · Sat May  9 07:14:59 PM PDT 2026</footer>
-<script>function f(){const q=document.getElementById('q').value.toLowerCase(),a=document.getElementById('af').value,t=document.getElementById('tf').value,c=document.getElementById('cf').value;let v=0;document.querySelectorAll('.fc').forEach(card=>{const m=(!q||card.dataset.q.includes(q))&&(!a||card.dataset.a===a)&&(!t||card.dataset.t===t)&&(!c||card.dataset.c===c);card.style.display=m?'':'none';if(m)v++});document.getElementById('nr')&&(document.getElementById('nr').style.display=v?'none':'')}</script>
+<footer>Generated by Ky · OpenClaw · Raspberry Pi 5 · Sat May  9 07:26:47 PM PDT 2026 · <a href="release-status.json" style="color:var(--mu)">Monitor Status</a></footer>
+<script>function f(){const q=document.getElementById('q').value.toLowerCase(),a=document.getElementById('af').value,t=document.getElementById('tf').value,c=document.getElementById('cf').value;let v=0;document.querySelectorAll('.fc').forEach(card=>{const m=(!q||card.dataset.q.includes(q))&&(!a||card.dataset.a===a)&&(!t||card.dataset.t===t)&&(!c||card.dataset.c===c);card.style.display=m?'':'none';if(m)v++});}
+async function checkNewRelease(){const btn=document.getElementById('checkBtn'),st=document.getElementById('checkStatus');btn.disabled=true;btn.textContent='⏳ Checking...';st.textContent='';try{const r=await fetch('release-status.json?t='+Date.now());if(!r.ok)throw new Error();const d=await r.json();st.innerHTML='✅ Last checked: '+d.last_check+'<br>'+d.status;if(d.new_release)st.innerHTML+='<br>🆕 Update available!'}catch(e){st.textContent='⚠ Monitor runs every 6h — auto-updates'}btn.disabled=false;btn.textContent='🔄 Check for New Releases'}</script>
 </body></html>
