@@ -791,9 +791,46 @@ async function loadAllCities() {
     allCityKeys = Object.keys(allCities).sort((a,b) => cleanCityName(a).localeCompare(cleanCityName(b)));
     currentData = allCities['San Diego city, California'] || SD;
     document.getElementById('citySearch').placeholder = '🔍 Search ' + allCityKeys.length + ' CA cities…';
+    
+    // ── URL deep-link: ?city=CityName%2C%20California ──
+    const urlParams = new URLSearchParams(window.location.search);
+    const cityParam = urlParams.get('city');
+    if (cityParam) {
+      const decoded = decodeURIComponent(cityParam);
+      // Find matching key
+      const match = allCityKeys.find(k => k === decoded);
+      if (match) {
+        currentCity = match;
+        currentData = allCities[match];
+        document.getElementById('citySearch').value = cleanCityName(match);
+        renderCensus();
+        return;
+      }
+      // Partial match: try to find by name portion
+      const partialMatch = allCityKeys.find(k => k.toLowerCase().includes(decoded.toLowerCase()));
+      if (partialMatch) {
+        currentCity = partialMatch;
+        currentData = allCities[partialMatch];
+        document.getElementById('citySearch').value = cleanCityName(partialMatch);
+        renderCensus();
+        return;
+      }
+    }
   } catch(e) {
     console.log('City data deferred, using embedded data:', e.message);
     allCityKeys = [];
+    
+    // ── URL deep-link fallback (embedded data only has SD) ──
+    const urlParams = new URLSearchParams(window.location.search);
+    const cityParam = urlParams.get('city');
+    if (cityParam) {
+      const decoded = decodeURIComponent(cityParam);
+      if (decoded === 'San Diego city, California') {
+        currentCity = decoded;
+        currentData = SD;
+        document.getElementById('citySearch').value = 'San Diego, CA';
+      }
+    }
   }
 }
 
