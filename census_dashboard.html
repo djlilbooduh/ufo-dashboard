@@ -81,23 +81,32 @@ footer a{color:var(--ac);text-decoration:none}
 </footer>
 
 <script>
-const DATA_URL = 'census_data.json';
-let censusData = {};
+const DATA_URL = 'census_data.json?v=2';
+let censusData = null;
+let allCities = [];
+let selectedCity = null;
+let activeIdx = -1;
+
+// ── Boot ──
+(function init() {
+  document.getElementById('popCards').innerHTML = '<div class="card" style="text-align:center"><div class="big-num" style="color:var(--mu)">⏳</div><div class="stat-sub">Loading 467 California cities…</div></div>';
+  loadData();
+})();
 
 async function loadData() {
   try {
-    const r = await fetch(DATA_URL + '?t=' + Date.now());
+    const r = await fetch(DATA_URL);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     censusData = await r.json();
+    if (!censusData.cities || !Object.keys(censusData.cities).length) throw new Error('No cities in data');
+    selectedCity = 'San Diego city, California';
     populateDropdown();
     loadCity();
   } catch(e) {
-    document.getElementById('popCards').innerHTML = '<div class="card" style="text-align:center;color:var(--sc)">⚠ Unable to load data</div>';
+    console.error('Load error:', e);
+    document.getElementById('popCards').innerHTML = '<div class="card" style="text-align:center;color:var(--sc)">⚠ Unable to load data<br><small>' + e.message + '</small></div>';
   }
 }
-
-let allCities = [];
-let selectedCity = 'San Diego city, California';
-let activeIdx = -1;
 
 function populateDropdown() {
   // Sort alphabetically, strip city/town suffix for sort
@@ -159,11 +168,11 @@ function selectCity(key) {
   selectedCity = key;
   document.getElementById('citySearch').value = cleanName(key);
   document.getElementById('cityDropdown').classList.remove('show');
-  loadCity();
+  try { loadCity(); } catch(e) { console.error(e); }
 }
 
 // Close dropdown on outside click
-document.addEventListener('click', e => {
+document.addEventListener('click', function(e) {
   if (!e.target.closest('.city-search')) {
     document.getElementById('cityDropdown').classList.remove('show');
   }
