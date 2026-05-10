@@ -1,0 +1,206 @@
+{
+  "metadata": {
+    "city": "San Diego, California",
+    "sources": [
+      "SDPD RIPA Stop Data (police_ripa_stops + police_ripa_race) via data.sandiego.gov",
+      "SDPD NIBRS Crime Offenses 2025 via data.sandiego.gov",
+      "US Census ACS 5-Year 2023 via census.gov"
+    ],
+    "date_generated": "2026-05-10",
+    "notes": "RIPA data represents police stops, not arrests (CA AB 953). NIBRS data represents reported incidents. Race in RIPA data is officer-perceived per statutory requirements. FBI UCR arrest-by-race data was not accessible without API key; RIPA stop data serves as the closest available proxy for city-level police interactions by race. Disparity ratio >1 indicates group is stopped disproportionately to population share."
+  },
+  "population": {
+    "total": 1385061,
+    "voting_age": 1125769,
+    "voting_age_pct": 81.3
+  },
+  "race_demographics": [
+    {
+      "group": "White (non-Hispanic)",
+      "count": 573281,
+      "pct": 41.4,
+      "color": "#4fc3f7"
+    },
+    {
+      "group": "Hispanic/Latino",
+      "count": 409493,
+      "pct": 29.6,
+      "color": "#ffab40"
+    },
+    {
+      "group": "Asian (non-Hispanic)",
+      "count": 238921,
+      "pct": 17.2,
+      "color": "#66bb6a"
+    },
+    {
+      "group": "Black/African American",
+      "count": 74890,
+      "pct": 5.4,
+      "color": "#ff5252"
+    },
+    {
+      "group": "Two or More Races",
+      "count": 72136,
+      "pct": 5.2,
+      "color": "#ce93d8"
+    },
+    {
+      "group": "Other Race",
+      "count": 8113,
+      "pct": 0.6,
+      "color": "#8888aa"
+    },
+    {
+      "group": "Native Hawaiian/Pacific Islander",
+      "count": 5862,
+      "pct": 0.4,
+      "color": "#80cbc4"
+    },
+    {
+      "group": "American Indian/Alaska Native",
+      "count": 2365,
+      "pct": 0.2,
+      "color": "#a1887f"
+    }
+  ],
+  "economics": {
+    "median_household_income": 104321,
+    "poverty_count": 29040,
+    "poverty_pct": 2.1
+  },
+  "police_stops_by_race": {
+    "total_stops_with_race": 236604,
+    "stop_counts_by_year": {
+      "2023": 7422,
+      "2024": 103554,
+      "2025": 92078,
+      "2026": 25724
+    },
+    "stop_types": {
+      "Vehicular": 134735,
+      "Pedestrian": 82325,
+      "Bicycle": 4296
+    },
+    "race_breakdown": [
+      {
+        "race": "White",
+        "stops_count": 85711,
+        "stops_pct": 36.2,
+        "population_count": 573281,
+        "population_pct": 41.4,
+        "disparity_ratio": 0.87,
+        "note": "RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"
+      },
+      {
+        "race": "Hispanic/Latino",
+        "stops_count": 81497,
+        "stops_pct": 34.4,
+        "population_count": 409493,
+        "population_pct": 29.6,
+        "disparity_ratio": 1.16,
+        "note": "RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"
+      },
+      {
+        "race": "Black/African American",
+        "stops_count": 41489,
+        "stops_pct": 17.5,
+        "population_count": 74890,
+        "population_pct": 5.4,
+        "disparity_ratio": 3.24,
+        "note": "RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"
+      },
+      {
+        "race": "Asian",
+        "stops_count": 14718,
+        "stops_pct": 6.2,
+        "population_count": 238921,
+        "population_pct": 17.2,
+        "disparity_ratio": 0.36,
+        "note": "RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"
+      },
+      {
+        "race": "Middle Eastern/South Asian",
+        "stops_count": 10084,
+        "stops_pct": 4.3,
+        "population_count": null,
+        "population_pct": null,
+        "disparity_ratio": null,
+        "note": "RIPA uses officer-perceived race; Census uses self-reported race/ethnicity (category not in Census standard groups)"
+      },
+      {
+        "race": "Pacific Islander",
+        "stops_count": 2329,
+        "stops_pct": 1.0,
+        "population_count": 5862,
+        "population_pct": 0.4,
+        "disparity_ratio": 2.5,
+        "note": "RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"
+      },
+      {
+        "race": "Native American",
+        "stops_count": 776,
+        "stops_pct": 0.3,
+        "population_count": 2365,
+        "population_pct": 0.2,
+        "disparity_ratio": 1.5,
+        "note": "RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"
+      }
+    ],
+    "interpretation": {
+      "disparity_ratio_meaning": "Ratio of % of stops to % of population. >1 means overrepresented in police stops relative to population.",
+      "caveats": [
+        "RIPA captures all police stops (traffic, pedestrian, bicycle), not just arrests",
+        "Race is officer-perceived, not self-identified",
+        "Not all stops correspond to residents of San Diego (transient population, visitors)",
+        "Census race categories are self-reported and may differ from officer perception"
+      ]
+    }
+  },
+  "reported_crime_2025": {
+    "total_incidents": 77580,
+    "violent_incidents": 5780,
+    "property_incidents": 22750,
+    "crimes_against": {
+      "PE": 13431,
+      "PR": 33766,
+      "SO": 13731
+    },
+    "offense_breakdown": {
+      "All Other Offenses": 17005,
+      "Larceny": 12572,
+      "Drug/Narcotic Violations": 7668,
+      "Simple Assault": 6958,
+      "Vandalism": 6007,
+      "Aggravated Assault": 4371,
+      "Motor Vehicle Theft": 4291,
+      "Theft From Motor Vehicle": 3779,
+      "Fraud/Counterfeiting": 3330,
+      "Disorderly Conduct": 2478,
+      "Burglary/Breaking & Entering": 2108,
+      "Alcohol Violations": 1708,
+      "Intimidation": 1021,
+      "Robbery": 963,
+      "Weapon Law Violations": 944,
+      "Sexual Assault": 797,
+      "Stolen Property Offenses": 583,
+      "Curfew/Loitering/Vagrancy Violations": 449,
+      "Kidnapping/Abduction": 222,
+      "Arson": 133,
+      "Prostitution": 62,
+      "Homicide": 40,
+      "Pornography/Obscene Material": 30,
+      "Animal Cruelty": 29,
+      "Other Sex Offenses": 22,
+      "Gambling Violations": 10
+    },
+    "violent_offense_categories": [
+      "Aggravated Assault",
+      "Robbery",
+      "Intimidation",
+      "Kidnapping/Abduction",
+      "Sexual Assault",
+      "Homicide"
+    ]
+  }
+}
