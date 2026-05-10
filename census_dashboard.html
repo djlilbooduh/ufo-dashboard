@@ -54,7 +54,7 @@ footer a{color:var(--ac);text-decoration:none}
   <div class="sub">American Community Survey · 2023 5-Year Estimates</div>
   <div class="controls">
     <select id="citySelect" onchange="loadCity()">
-      <option value="San Diego">📍 San Diego, CA</option>
+      <option>Loading cities…</option>
     </select>
     <span class="source">Source: census.gov API</span>
   </div>
@@ -88,10 +88,30 @@ async function loadData() {
   try {
     const r = await fetch(DATA_URL + '?t=' + Date.now());
     censusData = await r.json();
+    populateDropdown();
     loadCity();
   } catch(e) {
     document.getElementById('popCards').innerHTML = '<div class="card" style="text-align:center;color:var(--sc)">⚠ Unable to load data</div>';
   }
+}
+
+function populateDropdown() {
+  const sel = document.getElementById('citySelect');
+  sel.innerHTML = '';
+  // Sort cities by population descending
+  const sorted = Object.keys(censusData.cities).sort((a, b) =>
+    censusData.cities[b].population.total - censusData.cities[a].population.total
+  );
+  sorted.forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    // Clean display: strip 'city, California' / 'town, California'
+    const displayName = key.replace(/ (city|town), California$/, ', CA');
+    opt.textContent = '📍 ' + displayName;
+    // Default select San Diego
+    if (key === 'San Diego city, California') opt.selected = true;
+    sel.appendChild(opt);
+  });
 }
 
 function loadCity() {
