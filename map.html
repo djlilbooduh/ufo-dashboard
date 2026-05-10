@@ -249,11 +249,197 @@ body {
 #map-search-clear.visible { display: inline; }
 #map-search-clear:hover { color: var(--sc); }
 
+/* ── Filter panel ── */
+#filter-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 950;
+  background: rgba(10,10,16,0.92);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  color: var(--ac);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+#filter-toggle:hover {
+  background: rgba(20,20,40,0.95);
+  border-color: var(--ac);
+}
+#filter-toggle .arrow {
+  transition: transform 0.2s;
+  font-size: 0.6rem;
+}
+#filter-panel {
+  position: absolute;
+  top: 52px;
+  right: 12px;
+  z-index: 940;
+  background: rgba(10,10,16,0.94);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 14px 18px;
+  backdrop-filter: blur(10px);
+  font-size: 0.7rem;
+  color: var(--tx);
+  width: 270px;
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+#filter-panel.collapsed {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(20px);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  border-width: 0;
+}
+#filter-panel h3 {
+  font-size: 0.72rem;
+  color: var(--ac);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.filter-group {
+  margin-bottom: 12px;
+}
+.filter-group:last-of-type { margin-bottom: 10px; }
+.filter-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.filter-label .name {
+  font-weight: 600;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--mu);
+}
+.filter-label .range-val {
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  font-size: 0.68rem;
+  color: var(--ac);
+  font-weight: 600;
+}
+/* Dual-range slider */
+.dual-range {
+  position: relative;
+  height: 24px;
+  margin: 2px 0;
+}
+.dual-range .track-bg {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+}
+.dual-range input[type="range"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+}
+.dual-range input[type="range"]::-webkit-slider-thumb {
+  pointer-events: all;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ac);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(79,195,247,0.5);
+  margin-top: -5px;
+  position: relative;
+  z-index: 3;
+}
+.dual-range input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+  border: none;
+}
+.dual-range input[type="range"]::-moz-range-thumb {
+  pointer-events: all;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ac);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(79,195,247,0.5);
+}
+.dual-range input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: transparent;
+  border: none;
+}
+.dual-range .range-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.55rem;
+  color: var(--mu);
+  margin-top: -1px;
+  padding: 0 1px;
+}
+/* Reset button */
+#filter-reset {
+  width: 100%;
+  padding: 6px 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  color: var(--mu);
+  font-size: 0.68rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 2px;
+}
+#filter-reset:hover {
+  background: rgba(255,82,82,0.12);
+  border-color: var(--sc);
+  color: var(--sc);
+}
+#filter-count {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--mu);
+  padding: 4px 0;
+}
+#filter-count strong { color: var(--ac); }
+
 @media (max-width: 600px) {
   #topbar { padding: 0.5rem 0.8rem; }
   #topbar h1 { font-size: 1rem; }
   #legend { right: 4px; bottom: 8px; padding: 8px 10px; font-size: 0.65rem; }
   #info-panel { left: 4px; bottom: 8px; padding: 6px 8px; font-size: 0.65rem; }
+  #filter-panel { width: 240px; right: 4px; padding: 10px 12px; }
+  #filter-toggle { right: 4px; top: 6px; padding: 0.35rem 0.7rem; font-size: 0.68rem; }
 }
 </style>
 </head>
@@ -279,6 +465,57 @@ body {
   <div class="legend-row"><span class="legend-dot" style="background:#ffab40;"></span><span class="legend-label">25K – 100K</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#ff6d00;"></span><span class="legend-label">100K – 500K</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#ff5252;"></span><span class="legend-label">&gt; 500K</span></div>
+</div>
+
+<!-- Filter toggle button -->
+<button id="filter-toggle" title="Toggle filter panel">
+  ⚙️ <span>Filters</span> <span class="arrow">▸</span>
+</button>
+
+<!-- Filter panel -->
+<div id="filter-panel" class="collapsed">
+  <h3>⚙️ Filters <span id="filter-count">Showing all <strong>467</strong> cities</span></h3>
+
+  <div class="filter-group" id="filter-pop">
+    <div class="filter-label">
+      <span class="name">👥 Population</span>
+      <span class="range-val" id="pop-range-label">1K — 4M</span>
+    </div>
+    <div class="dual-range">
+      <div class="track-bg"></div>
+      <input type="range" id="pop-min" min="1000" max="4000000" value="1000" step="1000">
+      <input type="range" id="pop-max" min="1000" max="4000000" value="4000000" step="1000">
+    </div>
+    <div class="range-ticks"><span>1K</span><span>4M</span></div>
+  </div>
+
+  <div class="filter-group" id="filter-income">
+    <div class="filter-label">
+      <span class="name">💰 Median Income</span>
+      <span class="range-val" id="income-range-label">$20K — $250K</span>
+    </div>
+    <div class="dual-range">
+      <div class="track-bg"></div>
+      <input type="range" id="income-min" min="20000" max="250000" value="20000" step="1000">
+      <input type="range" id="income-max" min="20000" max="250000" value="250000" step="1000">
+    </div>
+    <div class="range-ticks"><span>$20K</span><span>$250K</span></div>
+  </div>
+
+  <div class="filter-group" id="filter-lean">
+    <div class="filter-label">
+      <span class="name">🗳️ Political Lean</span>
+      <span class="range-val" id="lean-range-label">R+40 — D+60</span>
+    </div>
+    <div class="dual-range">
+      <div class="track-bg"></div>
+      <input type="range" id="lean-min" min="-40" max="60" value="-40" step="1">
+      <input type="range" id="lean-max" min="-40" max="60" value="60" step="1">
+    </div>
+    <div class="range-ticks"><span>R+40</span><span>D+60</span></div>
+  </div>
+
+  <button id="filter-reset">↺ Reset Filters</button>
 </div>
 
 <div id="info-panel">
@@ -433,46 +670,216 @@ function updateCityCount() {
   document.getElementById('city-count').textContent = visible + ' / ' + total + ' cities';
 }
 
-// ── Search filter ──
-const searchInput = document.getElementById('map-search');
-const searchClear = document.getElementById('map-search-clear');
+// ── Filter state ──
+const filterState = {
+  popMin: 1000,
+  popMax: 4000000,
+  incomeMin: 20000,
+  incomeMax: 250000,
+  leanMin: -40,
+  leanMax: 60,
+  searchQuery: ''
+};
 
-searchInput.addEventListener('input', function() {
-  const q = this.value.toLowerCase().trim();
-  searchClear.classList.toggle('visible', q.length > 0);
-  
+// ── Unified filter function (AND-combines search + all sliders) ──
+function applyAllFilters() {
+  const q = filterState.searchQuery;
+  let visibleCount = 0;
+
   markers.forEach(m => {
-    const name = (m._cityData ? m._cityData.name : '').toLowerCase();
-    if (!q || name.includes(q)) {
+    const c = m._cityData;
+    if (!c) { m._filtered = true; m.setStyle({ fillOpacity: 0.06, opacity: 0.12 }); return; }
+
+    // Search filter
+    const nameMatch = !q || c.name.toLowerCase().includes(q);
+
+    // Population filter
+    const popMatch = c.population >= filterState.popMin && c.population <= filterState.popMax;
+
+    // Income filter
+    const incomeMatch = c.income >= filterState.incomeMin && c.income <= filterState.incomeMax;
+
+    // Lean filter (margin: D margin positive, R margin negative)
+    const margin = (c.dem_pct_2024 || 50) - (c.gop_pct_2024 || 50);
+    const leanMatch = margin >= filterState.leanMin && margin <= filterState.leanMax;
+
+    const allMatch = nameMatch && popMatch && incomeMatch && leanMatch;
+
+    if (allMatch) {
       m._filtered = false;
-      m.setStyle({ fillOpacity: popOpacity(m._cityData.population), opacity: 1 });
+      m.setStyle({ fillOpacity: popOpacity(c.population), opacity: 1 });
     } else {
       m._filtered = true;
       m.setStyle({ fillOpacity: 0.06, opacity: 0.12 });
       m.closePopup();
     }
+
+    if (allMatch) visibleCount++;
   });
-  
-  updateInfoText();
-  updateCityCount();
+
+  // Update all count displays
+  const total = markers.length;
+  document.getElementById('city-count').textContent = visibleCount + ' / ' + total + ' cities';
+  document.getElementById('filter-count').innerHTML = 'Showing <strong>' + visibleCount + '</strong> of ' + total + ' cities';
+  document.getElementById('info-text').innerHTML = visibleCount === total
+    ? 'Showing all <strong>' + total + '</strong> of ' + total + ' cities'
+    : 'Showing <strong>' + visibleCount + '</strong> of ' + total + ' cities';
+}
+
+// Override updateInfoText and updateCityCount to use unified filter
+function updateInfoText() {
+  // Handled by applyAllFilters, but keep for hover reset
+  const total = markers.length;
+  const visible = markers.filter(m => !m._filtered).length;
+  document.getElementById('info-text').innerHTML = visible === total
+    ? 'Showing all <strong>' + total + '</strong> of ' + total + ' cities'
+    : 'Showing <strong>' + visible + '</strong> of ' + total + ' cities';
+}
+
+function updateCityCount() {
+  applyAllFilters();
+}
+
+// ── Search filter ──
+const searchInput = document.getElementById('map-search');
+const searchClear = document.getElementById('map-search-clear');
+
+searchInput.addEventListener('input', function() {
+  filterState.searchQuery = this.value.toLowerCase().trim();
+  searchClear.classList.toggle('visible', filterState.searchQuery.length > 0);
+  applyAllFilters();
 });
 
 searchClear.addEventListener('click', function() {
   searchInput.value = '';
-  searchInput.dispatchEvent(new Event('input'));
+  filterState.searchQuery = '';
+  searchClear.classList.remove('visible');
+  applyAllFilters();
   searchInput.focus();
 });
+
 searchInput.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     this.value = '';
-    this.dispatchEvent(new Event('input'));
+    filterState.searchQuery = '';
+    searchClear.classList.remove('visible');
+    applyAllFilters();
     this.blur();
   }
 });
 
-// Update city count
+// ── Slider helpers ──
+function fmtPop(val) {
+  if (val >= 1000000) return (val/1000000).toFixed(1) + 'M';
+  if (val >= 1000) return (val/1000).toFixed(0) + 'K';
+  return val.toString();
+}
+
+function fmtIncome(val) {
+  if (val >= 1000) return '$' + (val/1000).toFixed(0) + 'K';
+  return '$' + val;
+}
+
+function fmtLean(val) {
+  if (val > 0) return 'D+' + val;
+  if (val < 0) return 'R+' + Math.abs(val);
+  return 'Even';
+}
+
+// ── Population slider ──
+const popMin = document.getElementById('pop-min');
+const popMax = document.getElementById('pop-max');
+const popLabel = document.getElementById('pop-range-label');
+
+function syncPopSliders() {
+  let min = parseInt(popMin.value);
+  let max = parseInt(popMax.value);
+  if (min > max) { const t = min; min = max; max = t; }
+  popMin.value = min;
+  popMax.value = max;
+  filterState.popMin = min;
+  filterState.popMax = max;
+  popLabel.textContent = fmtPop(min) + ' — ' + fmtPop(max);
+  applyAllFilters();
+}
+
+popMin.addEventListener('input', syncPopSliders);
+popMax.addEventListener('input', syncPopSliders);
+
+// ── Income slider ──
+const incMin = document.getElementById('income-min');
+const incMax = document.getElementById('income-max');
+const incLabel = document.getElementById('income-range-label');
+
+function syncIncSliders() {
+  let min = parseInt(incMin.value);
+  let max = parseInt(incMax.value);
+  if (min > max) { const t = min; min = max; max = t; }
+  incMin.value = min;
+  incMax.value = max;
+  filterState.incomeMin = min;
+  filterState.incomeMax = max;
+  incLabel.textContent = fmtIncome(min) + ' — ' + fmtIncome(max);
+  applyAllFilters();
+}
+
+incMin.addEventListener('input', syncIncSliders);
+incMax.addEventListener('input', syncIncSliders);
+
+// ── Lean slider ──
+const leanMin = document.getElementById('lean-min');
+const leanMax = document.getElementById('lean-max');
+const leanLabel = document.getElementById('lean-range-label');
+
+function syncLeanSliders() {
+  let min = parseInt(leanMin.value);
+  let max = parseInt(leanMax.value);
+  if (min > max) { const t = min; min = max; max = t; }
+  leanMin.value = min;
+  leanMax.value = max;
+  filterState.leanMin = min;
+  filterState.leanMax = max;
+  leanLabel.textContent = fmtLean(min) + ' — ' + fmtLean(max);
+  applyAllFilters();
+}
+
+leanMin.addEventListener('input', syncLeanSliders);
+leanMax.addEventListener('input', syncLeanSliders);
+
+// ── Filter panel toggle ──
+const filterToggle = document.getElementById('filter-toggle');
+const filterPanel = document.getElementById('filter-panel');
+const filterArrow = filterToggle.querySelector('.arrow');
+
+filterToggle.addEventListener('click', function() {
+  const collapsed = filterPanel.classList.toggle('collapsed');
+  filterArrow.textContent = collapsed ? '▸' : '▾';
+});
+
+// ── Reset filters ──
+document.getElementById('filter-reset').addEventListener('click', function() {
+  popMin.value = 1000;
+  popMax.value = 4000000;
+  incMin.value = 20000;
+  incMax.value = 250000;
+  leanMin.value = -40;
+  leanMax.value = 60;
+  filterState.popMin = 1000;
+  filterState.popMax = 4000000;
+  filterState.incomeMin = 20000;
+  filterState.incomeMax = 250000;
+  filterState.leanMin = -40;
+  filterState.leanMax = 60;
+  filterState.searchQuery = searchInput.value.toLowerCase().trim();
+  popLabel.textContent = '1K — 4M';
+  incLabel.textContent = '$20K — $250K';
+  leanLabel.textContent = 'R+40 — D+60';
+  searchClear.classList.toggle('visible', filterState.searchQuery.length > 0);
+  applyAllFilters();
+});
+
+// ── Initial state ──
 updateCityCount();
-updateInfoText();
 
 // Fit to all markers
 if (markers.length > 0) {
