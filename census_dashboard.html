@@ -90,12 +90,19 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
   <div id="sdVotingSection"></div>
 </div>
 
-<!-- CRIME TAB -->
-<div id="tabCrime" style="display:none"><div id="crimeContent"></div></div>
-
 <!-- VOTING TAB -->
 <div id="tabVoting" style="display:none">
   <div class="vote-table" id="votingTable"></div>
+</div>
+
+<!-- CRIME TAB -->
+<div id="tabCrime" style="display:none">
+  <div id="crimeContent">
+    <div class="card" style="max-width:800px;margin:2rem auto;text-align:center;padding:3rem">
+      <p style="color:var(--ac);font-size:1.5rem">⏳</p>
+      <p style="color:var(--mu);margin-top:1rem">Select a crime data source to load</p>
+    </div>
+  </div>
 </div>
 
 <footer>Data: US Census Bureau · ACS 2023 | CNN/NEP National Exit Polls | Pew Research Center</footer>
@@ -111,9 +118,6 @@ let cityCountyMap = {};
 let activeIdx = -1;
 let currentCity = 'San Diego city, California';
 let currentData = null;
-const CRIME_DATA_URL = 'all_ca_arrests.json';
-let arrestData = null;
-let crimeLoaded = false;
 
 // ══════════════ SAN DIEGO CENSUS DATA (default) ══════════════
 const SD = {
@@ -568,169 +572,6 @@ function renderAllSDVoting(year) {
   document.getElementById('sdVotingSection').innerHTML = renderSDVoting(currentVoteYear);
 }
 
-// ══════════════ CRIME DATA ══════════════
-
-function getCensusPopPct(fbiRace, censusRaces) {
-  var map = {
-    'White': ['White (non-Hispanic)', 'Hispanic/Latino'],
-    'Black or African American': ['Black/African American'],
-    'Asian': ['Asian (non-Hispanic)'],
-    'American Indian or Alaska Native': ['American Indian/AK'],
-    'Native Hawaiian or Other Pacific Islander': ['Native Hawaiian/PI']
-  };
-  var targets = map[fbiRace];
-  if (!targets) return null;
-  var total = 0;
-  for (var i = 0; i < targets.length; i++) {
-    var found = censusRaces.find(function(r) { return r.group === targets[i]; });
-    if (found) total += found.pct;
-  }
-  return total;
-}
-
-async function loadCrimeData() {
-  if (crimeLoaded) return true;
-  try {
-    var r = await fetch(CRIME_DATA_URL + '?t=' + Date.now());
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    arrestData = await r.json();
-    crimeLoaded = true;
-    return true;
-  } catch(e) {
-    console.log('Crime data load failed:', e.message);
-    return false;
-  }
-}
-
-function renderCrime() {
-  var container = document.getElementById('crimeContent');
-  if (!container) return;
-
-  if (!arrestData) {
-    container.innerHTML = '<div class="card" style="max-width:800px;margin:2rem auto;text-align:center;padding:3rem"><p style="color:var(--ac);font-size:1.5rem">⏳</p><p style="color:var(--mu);margin-top:1rem">Loading FBI arrest data for 450 California cities…</p><p style="color:var(--mu);font-size:.7rem;margin-top:.5rem">713 KB data file — may take a moment</p></div>';
-    return;
-  }
-
-  var arrest = arrestData[currentCity];
-  var d = currentData || SD;
-
-  if (!arrest) {
-    container.innerHTML = '<div class="card" style="max-width:800px;margin:2rem auto;text-align:center"><h2>🛡️ Crime &amp; Safety</h2><p style="color:var(--mu);font-size:.85rem;margin-top:.5rem">No arrest data available for this city</p><p style="color:var(--mu);font-size:.7rem;margin-top:.5rem">Some small cities contract with county sheriffs and do not report independently to the FBI.</p></div>';
-    return;
-  }
-
-  var html = '';
-
-  // Stats Cards
-  html += '<div class="grid">';
-  html += '<div class="card" style="text-align:center">';
-  html += '<div class="big-label">Total Arrests</div>';
-  html += '<div class="big-num">' + fmt(arrest.total_arrests) + '</div>';
-  html += '<div class="stat-sub">FBI UCR 2023</div>';
-  html += '</div>';
-  html += '<div class="card" style="text-align:center">';
-  html += '<div class="big-label">Arrest Rate per 1,000</div>';
-  html += '<div class="big-num" style="color:var(--cf)">' + arrest.arrest_rate_per_1k.toFixed(1) + '</div>';
-  html += '<div class="stat-sub">' + fmt(arrest.total_arrests) + ' arrests / ' + fmt(arrest.population) + ' residents</div>';
-  html += '</div>';
-  html += '</div>';
-
-  // Race Demographics
-  var censusRaces = d.race || [];
-  html += '<div class="card" style="max-width:1200px;margin:1.5rem auto"><h2>🧑 Arrest Demographics by Race — ' + cleanCityName(currentCity) + '</h2>';
-  html += '<p style="font-size:.72rem;color:var(--mu);margin-bottom:1rem">Comparing arrest share vs population share. Disparity ratio &gt;1.5 indicates over-representation.</p>';
-
-  if (arrest.arrests_by_race && Object.keys(arrest.arrests_by_race).length > 0) {
-    var raceRows = [];
-    Object.entries(arrest.arrests_by_race).forEach(function(entry) {
-      var fbiRace = entry[0];
-      var rdata = entry[1];
-      if (fbiRace === 'Unknown') return;
-      var popPct = getCensusPopPct(fbiRace, censusRaces);
-      var arrestPct = rdata.pct;
-      var ratio = popPct && popPct > 0 ? (arrestPct / popPct) : null;
-      var emoji = '⚪';
-      var ratioColor = 'var(--mu)';
-      if (ratio !== null) {
-        if (ratio > 1.5) { emoji = '🔴'; ratioColor = 'var(--sc)'; }
-        else if (ratio >= 0.8) { emoji = '🟢'; ratioColor = 'var(--uc)'; }
-        else { emoji = '🔵'; ratioColor = 'var(--ac)'; }
-      }
-      raceRows.push({
-        race: fbiRace, arrestPct: arrestPct, arrestCount: rdata.count,
-        popPct: popPct, ratio: ratio, emoji: emoji, ratioColor: ratioColor
-      });
-    });
-
-    for (var i = 0; i < raceRows.length; i++) {
-      var rr = raceRows[i];
-      var labelRow = rr.race + ' <span style="font-size:.65rem;color:var(--mu)">(FBI)</span>';
-      var barWidth = Math.min(100, rr.arrestPct * 4);
-      var barText = rr.arrestPct >= 6 ? rr.arrestPct.toFixed(1) + '% of arrests' : '';
-      html += '<div class="race-bar-row">';
-      html += '<div class="race-label">' + labelRow + '</div>';
-      html += '<div class="race-bar-track"><div class="race-bar-fill" style="width:' + barWidth + '%;background:var(--sc);color:#fff">' + barText + '</div></div>';
-      html += '<div class="race-pct" style="color:var(--sc)">' + rr.arrestPct.toFixed(1) + '%</div>';
-      html += '<div class="race-count">' + fmt(rr.arrestCount) + '</div>';
-      html += '</div>';
-
-      if (rr.popPct !== null) {
-        var popBarWidth = Math.min(100, rr.popPct * 4);
-        var popBarText = rr.popPct >= 6 ? rr.popPct.toFixed(1) + '% of pop' : '';
-        html += '<div class="race-bar-row">';
-        html += '<div class="race-label" style="font-size:.7rem;color:var(--mu)">&nbsp;&nbsp;↳ Population</div>';
-        html += '<div class="race-bar-track"><div class="race-bar-fill" style="width:' + popBarWidth + '%;background:var(--ac);color:#000">' + popBarText + '</div></div>';
-        html += '<div class="race-pct" style="color:var(--ac)">' + rr.popPct.toFixed(1) + '%</div>';
-        html += '<div class="race-count" style="font-size:.65rem;color:' + rr.ratioColor + '">' + rr.emoji + ' ' + rr.ratio.toFixed(1) + 'x</div>';
-        html += '</div>';
-      }
-    }
-  } else {
-    html += '<p style="color:var(--mu);font-size:.78rem">No racial breakdown available.</p>';
-  }
-
-  html += '<div style="margin-top:.75rem;font-size:.65rem;color:var(--mu)">';
-  html += '🔴 Over-represented (&gt;1.5x pop share) &nbsp; 🟢 Proportional (0.8–1.5x) &nbsp; 🔵 Under-represented (&lt;0.8x)';
-  html += '</div></div>';
-
-  // Offense Categories
-  html += '<div class="card" style="max-width:1200px;margin:1.5rem auto"><h2>📋 Top Offense Categories — ' + cleanCityName(currentCity) + '</h2>';
-  if (arrest.offense_categories && Object.keys(arrest.offense_categories).length > 0) {
-    var offenses = Object.entries(arrest.offense_categories)
-      .filter(function(e) { return e[1] > 0; })
-      .sort(function(a, b) { return b[1] - a[1]; })
-      .slice(0, 8);
-    if (offenses.length > 0) {
-      for (var j = 0; j < offenses.length; j++) {
-        html += '<div class="stat-row"><span class="stat-label">' + offenses[j][0] + '</span><span class="stat-val">' + fmt(offenses[j][1]) + '</span></div>';
-      }
-    } else {
-      html += '<p style="color:var(--mu);font-size:.78rem">No offense category data available.</p>';
-    }
-  }
-  html += '<div style="margin-top:.75rem;font-size:.65rem;color:var(--mu)">FBI National Incident-Based Reporting System (NIBRS) offense categories</div>';
-  html += '</div>';
-
-  // Interpretation Caveats
-  html += '<div class="card" style="max-width:1200px;margin:1.5rem auto"><h2>⚠️ Interpretation Caveats</h2>';
-  html += '<div style="font-size:.78rem;line-height:1.8;color:var(--mu)">';
-  html += '<p>• <strong style="color:var(--tx)">Arrests ≠ crime rates.</strong> Arrests reflect police activity and enforcement priorities, not just underlying criminal behavior.</p>';
-  html += '<p>• <strong style="color:var(--tx)">Racial disparities</strong> may reflect biased policing, socioeconomic factors, community reporting patterns, and other systemic issues — not just differences in offending.</p>';
-  html += '<p>• <strong style="color:var(--tx)">FBI UCR data</strong> is voluntarily reported by law enforcement agencies. Reporting methods and completeness vary by jurisdiction.</p>';
-  html += '<p>• <strong style="color:var(--tx)">FBI "White"</strong> includes Hispanic arrestees; census "White (non-Hispanic)" does not. We combine census White + Hispanic for comparison.</p>';
-  html += '<p>• <strong style="color:var(--tx)">Small numbers</strong> in small cities can produce misleading ratios. Interpret with caution for cities under 10,000 residents.</p>';
-  html += '</div></div>';
-
-  // Scope Note
-  html += '<div class="card" style="max-width:1200px;margin:1.5rem auto">';
-  html += '<div style="font-size:.75rem;color:var(--mu);text-align:center">';
-  html += '📋 <strong>Crime data for 450 of 467 CA cities</strong> — some small cities contract with county sheriffs and do not report independently to the FBI.<br>';
-  html += 'Source: FBI Crime Data Explorer, Uniform Crime Reporting (UCR) Program, 2023 Arrest Data.';
-  html += '</div></div>';
-
-  container.innerHTML = html;
-}
-
 // ── CITY SEARCH & LOADING ──
 function cleanCityName(key) {
   return key.replace(/ (city|town), California$/, ', CA');
@@ -942,9 +783,6 @@ function selectCity(key) {
   document.getElementById('citySearch').value = cleanCityName(key);
   document.getElementById('cityDropdown').classList.remove('show');
   renderCensus();
-  if (document.getElementById('tabCrime').style.display !== 'none' && arrestData) {
-    renderCrime();
-  }
 }
 
 document.addEventListener('click', function(e) {
@@ -1021,13 +859,7 @@ function showTab(tab) {
         (tab==='voting' && t.textContent.includes('Voting'))) t.classList.add('active');
   });
   if (tab === 'voting') renderVoting(currentNationalYear);
-  if (tab === 'crime') {
-    if (!crimeLoaded) {
-      loadCrimeData().then(function() { renderCrime(); });
-    } else {
-      renderCrime();
-    }
-  }
+  if (tab === 'crime') loadCrimeTab();
 }
 
 async function loadCountyData() {
@@ -1044,6 +876,84 @@ async function loadCountyData() {
   }
 }
 
+// ── CRIME TAB ──
+let crimeData = null;
+let crimeLoading = false;
+
+async function loadCrimeTab() {
+  var el = document.getElementById('crimeContent');
+  if (!el) return;
+  
+  if (crimeLoading) return;
+  
+  if (!crimeData) {
+    el.innerHTML = '<div class="card" style="max-width:800px;margin:2rem auto;text-align:center;padding:3rem"><p style="color:var(--ac);font-size:1.5rem">⏳</p><p style="color:var(--mu);margin-top:1rem">Loading FBI arrest data for 450 cities…</p></div>';
+    crimeLoading = true;
+    try {
+      var r = await fetch('all_ca_arrests.json?t=' + Date.now());
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      crimeData = await r.json();
+    } catch(e) {
+      el.innerHTML = '<div class="card" style="max-width:800px;margin:2rem auto;text-align:center;padding:3rem"><p style="color:var(--sc);font-size:1.2rem">❌</p><p style="color:var(--mu);margin-top:1rem">Could not load crime data</p><p style="color:var(--mu);font-size:.7rem;margin-top:.5rem">' + e.message + '</p></div>';
+      crimeLoading = false;
+      return;
+    }
+    crimeLoading = false;
+  }
+  
+  renderCrimeTab();
+}
+
+function renderCrimeTab() {
+  var el = document.getElementById('crimeContent');
+  if (!el || !crimeData) return;
+  
+  var cityKey = currentCity || 'San Diego city, California';
+  var a = crimeData[cityKey];
+  
+  if (!a) {
+    el.innerHTML = '<div class="card" style="max-width:800px;margin:2rem auto;text-align:center;padding:3rem"><h2>🛡️ Crime &amp; Safety</h2><p style="color:var(--mu);margin-top:1rem">No FBI arrest data for ' + cleanCityName(cityKey) + '</p><p style="color:var(--mu);font-size:.72rem;margin-top:.5rem">Some cities contract with county sheriffs</p></div>';
+    return;
+  }
+  
+  var pop = (currentData || SD).population.total;
+  var rate = pop > 0 ? (a.total_arrests / pop * 1000).toFixed(1) : '0';
+  
+  var h = '';
+  h += '<div class="grid">';
+  h += '<div class="card" style="text-align:center"><div class="big-label">Total Arrests (FBI 2023)</div><div class="big-num">' + fmt(a.total_arrests) + '</div><div class="stat-sub">' + cleanCityName(cityKey) + '</div></div>';
+  h += '<div class="card" style="text-align:center"><div class="big-label">Arrest Rate per 1,000</div><div class="big-num" style="color:var(--cf)">' + rate + '</div><div class="stat-sub">' + fmt(a.total_arrests) + ' arrests / ' + fmt(pop) + ' residents</div></div>';
+  h += '</div>';
+  
+  // Race breakdown
+  if (a.arrests_by_race) {
+    h += '<div class="card" style="max-width:1200px;margin:1.5rem auto"><h2>🧑 Arrests by Race — ' + cleanCityName(cityKey) + '</h2>';
+    var races = a.arrests_by_race;
+    Object.keys(races).forEach(function(r) {
+      if (r === 'Unknown') return;
+      var pct = races[r].pct;
+      h += '<div class="stat-row"><span class="stat-label">' + r + '</span><span class="stat-val" style="color:var(--sc)">' + pct.toFixed(1) + '%</span></div>';
+      h += '<div class="bar-bg"><div class="bar-fill" style="width:' + Math.min(100, pct*4) + '%;background:var(--sc)"></div></div>';
+    });
+    h += '</div>';
+  }
+  
+  // Offense categories
+  if (a.offense_categories) {
+    h += '<div class="card" style="max-width:1200px;margin:1.5rem auto"><h2>📋 Top Offenses</h2>';
+    Object.entries(a.offense_categories).filter(function(e){return e[1]>0}).sort(function(x,y){return y[1]-x[1]}).slice(0,8).forEach(function(o){
+      h += '<div class="stat-row"><span class="stat-label">' + o[0] + '</span><span class="stat-val">' + fmt(o[1]) + '</span></div>';
+    });
+    h += '</div>';
+  }
+  
+  h += '<div class="card" style="max-width:1200px;margin:1.5rem auto;font-size:.72rem;color:var(--mu)"><strong>Source:</strong> FBI Crime Data Explorer — Arrest data for ' + cleanCityName(cityKey) + ' Police Department, 2023. Data for 450 of 467 CA cities.</div>';
+  
+  el.innerHTML = h;
+}
+
+// ── End crime tab ──
+
 // Boot
 currentData = SD;
 renderCensus();
@@ -1052,4 +962,3 @@ loadCountyData();
 </script>
 </body>
 </html>
- 
