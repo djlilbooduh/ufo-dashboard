@@ -1,0 +1,37 @@
+{
+  "cities": {
+    "San Diego": {
+      "state": "CA",
+      "fips": "0666000",
+      "year": "2023",
+      "source": "US Census Bureau ACS 5-Year Estimates",
+      "population": {
+        "total": 1385061,
+        "voting_age": 1125769,
+        "voting_age_pct": 81.3
+      },
+      "race": [
+        {"group": "White (non-Hispanic)", "count": 573281, "pct": 41.4, "color": "#4fc3f7"},
+        {"group": "Hispanic/Latino", "count": 409493, "pct": 29.6, "color": "#ffab40"},
+        {"group": "Asian (non-Hispanic)", "count": 238921, "pct": 17.2, "color": "#66bb6a"},
+        {"group": "Black/African American", "count": 74890, "pct": 5.4, "color": "#ff5252"},
+        {"group": "Two or More Races", "count": 72136, "pct": 5.2, "color": "#ce93d8"},
+        {"group": "Other Race", "count": 8113, "pct": 0.6, "color": "#8888aa"},
+        {"group": "Native Hawaiian/Pacific Islander", "count": 5862, "pct": 0.4, "color": "#80cbc4"},
+        {"group": "American Indian/Alaska Native", "count": 2365, "pct": 0.2, "color": "#a1887f"}
+      ],
+      "economics": {
+        "median_household_income": 104321,
+        "poverty_count": 29040,
+        "poverty_pct": 2.1
+      },
+      "education": {
+        "bachelors_or_higher": 487109,
+        "bachelors_only": 281352,
+        "masters": 132824,
+        "professional": 35379,
+        "doctorate": 37554
+      }
+    }
+  }
+}
