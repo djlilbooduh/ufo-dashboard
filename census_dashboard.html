@@ -237,6 +237,7 @@ function renderCensus() {
 }
 
 function renderVoting(year) {
+  currentNationalYear = year;
   const d = VOTE[year];
   if (!d) return;
   
@@ -313,6 +314,9 @@ function renderVoting(year) {
   });
   html += `<div style="margin-top:.5rem;font-size:.65rem;color:var(--mu)">Census CPS: self-reported turnout among citizen voting-age population</div>`;
   html += `</div></div>`;
+
+  // City comparison section
+  html += renderCityComparison(year);
 
   document.getElementById('votingTable').innerHTML = html;
 }
@@ -402,6 +406,148 @@ function renderSDVoting(year) {
 }
 
 let currentVoteYear = '2024';
+let currentNationalYear = '2024';
+
+// ══════════════ CITY ESTIMATE (weighted national patterns) ══════════════
+function mapCityRaceToNational(cityRaceGroup) {
+  const m = {
+    'White (non-Hispanic)': 'White',
+    'Hispanic/Latino': 'Hispanic/Latino',
+    'Asian (non-Hispanic)': 'Asian',
+    'Black/African American': 'Black'
+  };
+  return m[cityRaceGroup] || 'Other';
+}
+
+function calculateCityEstimate(year) {
+  const d = currentData || SD;
+  const v = VOTE[year];
+  if (!d || !v || !d.race) return null;
+
+  // Group city race percentages into national categories
+  const grouped = {};
+  d.race.forEach(r => {
+    const nat = mapCityRaceToNational(r.group);
+    if (!grouped[nat]) grouped[nat] = { pct: 0, count: 0 };
+    grouped[nat].pct += r.pct;
+    grouped[nat].count += (r.count || 0);
+  });
+
+  let demTotal = 0, gopTotal = 0, totalWeight = 0;
+  const details = [];
+
+  v.race_vote.forEach(rv => {
+    const cg = grouped[rv.race] || { pct: 0 };
+    const cpct = cg.pct;
+    totalWeight += cpct;
+    const dContrib = (cpct / 100) * rv.dem;
+    const gContrib = (cpct / 100) * rv.gop;
+    demTotal += dContrib;
+    gopTotal += gContrib;
+    details.push({
+      race: rv.race,
+      cityPct: cpct,
+      natShare: rv.share,
+      demPct: rv.dem,
+      gopPct: rv.gop,
+      demContrib: dContrib,
+      gopContrib: gContrib
+    });
+  });
+
+  return {
+    demTotal: demTotal,
+    gopTotal: gopTotal,
+    margin: demTotal - gopTotal,
+    totalWeight: totalWeight,
+    details: details
+  };
+}
+
+function renderCityComparison(year) {
+  const est = calculateCityEstimate(year);
+  if (!est) return '';
+  const cityName = cleanCityName(currentCity);
+  const marginAbs = Math.abs(est.margin).toFixed(1);
+  const leanDir = est.margin > 0 ? 'Democratic' : 'Republican';
+  const leanLabel = est.margin > 0 ? 'D+' : 'R+';
+  const demColor = '#4fc3f7';
+  const gopColor = '#ff5252';
+
+  let h = `<div class="card" style="margin:1.5rem auto;max-width:1200px">
+    <h2>🏙️ How ${cityName} Compares — ${year} National Patterns</h2>
+    <p style="font-size:.75rem;color:var(--mu);margin-bottom:1rem">
+      Estimate based on ${cityName}'s racial demographics weighted by <strong>national</strong> exit poll voting patterns by race.
+      This is <em>not</em> actual local results — see the Census tab for county-level presidential data.
+    </p>`;
+
+  // Side-by-side table: city demographics vs national electorate
+  h += `<table style="width:100%;border-collapse:collapse;font-size:.75rem;margin-bottom:1.25rem">
+    <thead><tr>
+      <th style="text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--mu);font-size:.65rem">Race/Ethnicity</th>
+      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--ac);font-size:.65rem">${cityName}<br>Population %</th>
+      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--mu);font-size:.65rem">National<br>Electorate %</th>
+      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:${demColor};font-size:.65rem">National<br>Dem %</th>
+      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:${gopColor};font-size:.65rem">National<br>GOP %</th>
+      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--mu);font-size:.65rem">Est. Impact</th>
+    </tr></thead><tbody>`;
+
+  est.details.forEach((d, i) => {
+    const impact = d.demContrib - d.gopContrib;
+    const impactSign = impact > 0 ? '+' : '';
+    const impactColor = impact > 0 ? demColor : gopColor;
+    const bg = i % 2 === 0 ? 'rgba(255,255,255,.01)' : 'transparent';
+    const highlight = d.cityPct > 10 ? 'font-weight:600;' : '';
+    h += `<tr style="background:${bg}">
+      <td style="padding:.35rem .6rem;${highlight}">${d.race}</td>
+      <td style="padding:.35rem .6rem;text-align:center;${highlight}color:var(--ac)">${d.cityPct.toFixed(1)}%</td>
+      <td style="padding:.35rem .6rem;text-align:center;color:var(--tx)">${d.natShare}%</td>
+      <td style="padding:.35rem .6rem;text-align:center;color:${demColor}">${d.demPct}%</td>
+      <td style="padding:.35rem .6rem;text-align:center;color:${gopColor}">${d.gopPct}%</td>
+      <td style="padding:.35rem .6rem;text-align:center;color:${impactColor};font-family:'SF Mono',monospace;font-size:.7rem">${impactSign}${impact.toFixed(1)}</td>
+    </tr>`;
+  });
+
+  h += `</tbody></table>`;
+
+  // Weighted result bar
+  const demPct = est.demTotal.toFixed(1);
+  const gopPct = est.gopTotal.toFixed(1);
+  const otherPct = (100 - est.demTotal - est.gopTotal).toFixed(1);
+  const demWidth = est.demTotal;
+  const gopWidth = est.gopTotal;
+
+  h += `<div style="background:rgba(79,195,247,.06);border-radius:10px;padding:1.25rem;margin-bottom:1rem">
+    <div style="font-size:.85rem;font-weight:600;color:var(--tx);margin-bottom:.75rem">
+      📊 Estimated Vote for ${cityName} (${year} National Patterns)
+    </div>
+    <div style="display:flex;height:32px;border-radius:6px;overflow:hidden;margin-bottom:.5rem">
+      <div style="width:${demWidth}%;background:${demColor};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#000;min-width:${demPct>8?'':'0'}">${demPct>8 ? demPct+'% Dem' : ''}</div>
+      <div style="width:${gopWidth}%;background:${gopColor};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;min-width:${gopPct>8?'':'0'}">${gopPct>8 ? gopPct+'% GOP' : ''}</div>
+      <div style="width:${otherPct>0 ? otherPct : 0}%;background:#555;display:flex;align-items:center;justify-content:center;font-size:.68rem;color:#aaa">${otherPct>8 ? otherPct+'% Other' : ''}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--mu)">
+      <span style="color:${demColor};font-weight:600">Dem ${demPct}%</span>
+      <span style="color:${gopColor};font-weight:600">GOP ${gopPct}%</span>
+    </div>
+  </div>`;
+
+  // Key takeaway callout
+  h += `<div style="background:rgba(79,195,247,.04);border:1px solid rgba(79,195,247,.15);border-radius:8px;padding:1rem;font-size:.78rem;line-height:1.6">
+    <span style="font-size:.85rem">💡</span> <strong style="color:var(--tx)">Local Impact:</strong> 
+    Based on ${cityName}'s demographics and ${year} national voting patterns by race, this city would lean
+    <strong style="color:${est.margin>0?demColor:gopColor}">${leanDir} by approximately ${marginAbs} points</strong>
+    (${leanLabel}${marginAbs}).
+    <span style="color:var(--mu);font-size:.7rem;display:block;margin-top:.5rem">
+      ⚠️ This is a <em>demographic estimate only</em>. Actual local voting behavior can differ due to turnout gaps,
+      regional political culture, candidate effects, and other factors. For ${cityName}'s real county-level results, see the Census tab.
+    </span>
+  </div>`;
+
+  h += `</div>`;
+  return h;
+}
+
 function renderAllSDVoting(year) {
   currentVoteYear = year || '2024';
   document.getElementById('sdVotingSection').innerHTML = renderSDVoting(currentVoteYear);
@@ -484,7 +630,7 @@ function showTab(tab) {
     if ((tab==='census' && t.textContent.includes('Census')) || 
         (tab==='voting' && t.textContent.includes('Voting'))) t.classList.add('active');
   });
-  if (tab === 'voting' && !document.getElementById('votingTable').innerHTML) renderVoting('2024');
+  if (tab === 'voting') renderVoting(currentNationalYear);
 }
 
 async function loadCountyData() {
