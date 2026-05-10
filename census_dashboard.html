@@ -68,7 +68,6 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
   <div class="sub">US Census ACS 2023 · National Exit Polls 2016–2024</div>
   <div class="tabs">
     <div class="tab active" onclick="showTab('census')">🏙️ Census Demographics</div>
-    <div class="tab" onclick="showTab('crime')">🛡️ Crime & Safety</div>
     <div class="tab" onclick="showTab('voting')">🗳️ Voting by Race (National)</div>
   </div>
   <div class="city-search" style="max-width:500px;margin:1rem auto 0;position:relative">
@@ -88,11 +87,6 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
   <div class="race-section" id="raceSection"></div>
   <div class="grid" style="grid-template-columns:1fr 1fr" id="detailGrid"></div>
   <div id="sdVotingSection"></div>
-</div>
-
-<!-- CRIME TAB -->
-<div id="tabCrime" style="display:none">
-  <div id="crimeContent"></div>
 </div>
 
 <!-- VOTING TAB -->
@@ -181,241 +175,6 @@ const SD_VOTE = {
     2016: {dem:"Clinton", dem_pct:56.3, gop:"Trump", gop_pct:36.1, other_pct:7.6, turnout:79.0, total_votes:1367000}
   }
 };
-
-// ══════════════ SAN DIEGO CRIME DATA (embedded) ══════════════
-const CRIME_CITY = {"metadata":{"city":"San Diego, California","sources":["SDPD RIPA Stop Data","SDPD NIBRS Crime Offenses 2025","US Census ACS 5-Year 2023"],"date_generated":"2026-05-10"},"population":{"total":1385061,"voting_age":1125769,"voting_age_pct":81.3},"race_demographics":[{"group":"White (non-Hispanic)","count":573281,"pct":41.4,"color":"#4fc3f7"},{"group":"Hispanic/Latino","count":409493,"pct":29.6,"color":"#ffab40"},{"group":"Asian (non-Hispanic)","count":238921,"pct":17.2,"color":"#66bb6a"},{"group":"Black/African American","count":74890,"pct":5.4,"color":"#ff5252"},{"group":"Two or More Races","count":72136,"pct":5.2,"color":"#ce93d8"},{"group":"Other Race","count":8113,"pct":0.6,"color":"#8888aa"},{"group":"Native Hawaiian/Pacific Islander","count":5862,"pct":0.4,"color":"#80cbc4"},{"group":"American Indian/Alaska Native","count":2365,"pct":0.2,"color":"#a1887f"}],"reported_crime_2025":{"total_incidents":77580,"violent_incidents":5780,"property_incidents":22750,"crimes_against":{"PE":13431,"PR":33766,"SO":13731},"offense_breakdown":{"All Other Offenses":17005,"Larceny":12572,"Drug/Narcotic Violations":7668,"Simple Assault":6958,"Vandalism":6007,"Aggravated Assault":4371,"Motor Vehicle Theft":4291,"Theft From Motor Vehicle":3779,"Fraud/Counterfeiting":3330,"Disorderly Conduct":2478,"Burglary/Breaking & Entering":2108,"Alcohol Violations":1708,"Intimidation":1021,"Robbery":963,"Weapon Law Violations":944,"Sexual Assault":797,"Stolen Property Offenses":583,"Curfew/Loitering/Vagrancy Violations":449,"Kidnapping/Abduction":222,"Arson":133,"Prostitution":62,"Homicide":40,"Pornography/Obscene Material":30,"Animal Cruelty":29,"Other Sex Offenses":22,"Gambling Violations":10},"violent_offense_categories":["Aggravated Assault","Robbery","Intimidation","Kidnapping/Abduction","Sexual Assault","Homicide"]},"police_stops_by_race":{"total_stops_with_race":236604,"stop_counts_by_year":{"2023":7422,"2024":103554,"2025":92078,"2026":25724},"stop_types":{"Vehicular":134735,"Pedestrian":82325,"Bicycle":4296},"race_breakdown":[{"race":"White","stops_count":85711,"stops_pct":36.2,"population_count":573281,"population_pct":41.4,"disparity_ratio":0.87,"note":"RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"},{"race":"Hispanic/Latino","stops_count":81497,"stops_pct":34.4,"population_count":409493,"population_pct":29.6,"disparity_ratio":1.16,"note":"RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"},{"race":"Black/African American","stops_count":41489,"stops_pct":17.5,"population_count":74890,"population_pct":5.4,"disparity_ratio":3.24,"note":"RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"},{"race":"Asian","stops_count":14718,"stops_pct":6.2,"population_count":238921,"population_pct":17.2,"disparity_ratio":0.36,"note":"RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"},{"race":"Middle Eastern/South Asian","stops_count":10084,"stops_pct":4.3,"population_count":null,"population_pct":null,"disparity_ratio":null,"note":"RIPA uses officer-perceived race; Census uses self-reported race/ethnicity (category not in Census standard groups)"},{"race":"Pacific Islander","stops_count":2329,"stops_pct":1.0,"population_count":5862,"population_pct":0.4,"disparity_ratio":2.5,"note":"RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"},{"race":"Native American","stops_count":776,"stops_pct":0.3,"population_count":2365,"population_pct":0.2,"disparity_ratio":1.5,"note":"RIPA uses officer-perceived race; Census uses self-reported race/ethnicity"}],"interpretation":{"disparity_ratio_meaning":"Ratio of % of stops to % of population. >1 means overrepresented in police stops relative to population.","caveats":["RIPA captures all police stops (traffic, pedestrian, bicycle), not just arrests","Race is officer-perceived, not self-identified","Not all stops correspond to residents of San Diego (transient population, visitors)","Census race categories are self-reported and may differ from officer perception"]}}};
-
-// ══════════════ FBI ARREST DATA (embedded) ══════════════
-const FBI_ARREST_DATA = {
-  total_arrests: 109894,
-  arrest_rate_per_1k: 84.2,
-  arrests_by_race: [
-    {race:"White", pct:70.5, count:77505, pop_pct:75.3, pop_label:"Combined: White (41.4%) + Hispanic/Latino (29.6%)", disparity:0.94, color:"#4fc3f7", note:"FBI UCR does not separate Hispanic ethnicity; White category includes Hispanic/Latino arrestees"},
-    {race:"Black or African American", pct:23.8, count:26123, pop_pct:5.4, disparity:4.41, color:"#ff5252"},
-    {race:"Asian", pct:3.8, count:4135, pop_pct:17.2, disparity:0.22, color:"#66bb6a"},
-    {race:"Native Hawaiian / Pacific Islander", pct:0.5, count:546, pop_pct:0.4, disparity:1.25, color:"#80cbc4"},
-    {race:"American Indian / Alaska Native", pct:0.2, count:273, pop_pct:0.2, disparity:1.0, color:"#a1887f"},
-    {race:"Unknown", pct:1.2, count:1312, pop_pct:null, disparity:null, color:"#8888aa", note:"Excluded from disparity calculations — no population to compare"}
-  ],
-  source: "FBI Crime Data Explorer — Arrestee Race & Offense Category"
-};
-
-let crimeNeighborhoods = null;
-let crimeNeighborhoodSortDir = 'desc'; // 'desc' = highest first, 'asc' = lowest first
-
-function renderCrime() {
-  const c = CRIME_CITY;
-  const pop = c.population.total;
-  const totalRate = (c.reported_crime_2025.total_incidents / pop * 1000).toFixed(1);
-  const violentRate = (c.reported_crime_2025.violent_incidents / pop * 1000).toFixed(1);
-  const propertyRate = (c.reported_crime_2025.property_incidents / pop * 1000).toFixed(1);
-
-  let h = '';
-
-  // ── Note about data scope ──
-  h += `<div style="max-width:1200px;margin:0 auto 1rem;padding:0 2rem">
-    <div style="background:rgba(255,171,64,.06);border:1px solid rgba(255,171,64,.2);border-radius:8px;padding:.75rem 1rem;font-size:.75rem;color:var(--cf)">
-      ℹ️ Crime data currently available for <strong>San Diego only</strong>. More cities coming soon.
-    </div>
-  </div>`;
-
-  // ── City-wide stats cards ──
-  h += `<div class="grid">
-    <div class="card" style="text-align:center">
-      <div class="big-label">Total Crime Rate</div>
-      <div class="big-num" style="color:var(--cf)">${totalRate}</div>
-      <div class="stat-sub">per 1,000 residents · 2025</div>
-    </div>
-    <div class="card" style="text-align:center">
-      <div class="big-label">Violent Crime Rate</div>
-      <div class="big-num" style="color:var(--sc)">${violentRate}</div>
-      <div class="stat-sub">per 1,000 residents · 2025</div>
-    </div>
-    <div class="card" style="text-align:center">
-      <div class="big-label">Property Crime Rate</div>
-      <div class="big-num" style="color:var(--cf)">${propertyRate}</div>
-      <div class="stat-sub">per 1,000 residents · 2025</div>
-    </div>
-    <div class="card" style="text-align:center">
-      <div class="big-label">Total Incidents (2025)</div>
-      <div class="big-num">${fmt(c.reported_crime_2025.total_incidents)}</div>
-      <div class="stat-sub">${fmt(c.reported_crime_2025.violent_incidents)} violent · ${fmt(c.reported_crime_2025.property_incidents)} property</div>
-    </div>
-  </div>`;
-
-  // ── Arrest stats cards ──
-  h += `<div class="grid">
-    <div class="card" style="text-align:center">
-      <div class="big-label">Total Arrests (FBI UCR)</div>
-      <div class="big-num">${fmt(FBI_ARREST_DATA.total_arrests)}</div>
-      <div class="stat-sub">San Diego Police Department · 2023</div>
-    </div>
-    <div class="card" style="text-align:center">
-      <div class="big-label">Arrest Rate</div>
-      <div class="big-num" style="color:var(--cf)">${FBI_ARREST_DATA.arrest_rate_per_1k}</div>
-      <div class="stat-sub">per 1,000 residents · 2023</div>
-    </div>
-  </div>
-
-  // ── Top offenses breakdown ──
-  h += `<div class="card" style="max-width:1200px;margin:1.5rem auto"><h2>🔝 Top Reported Offenses</h2>`;
-  const offenses = Object.entries(c.reported_crime_2025.offense_breakdown)
-    .sort((a,b) => b[1] - a[1]).slice(0, 10);
-  const maxOff = offenses[0][1];
-  offenses.forEach(([name, count]) => {
-    const pct = (count / c.reported_crime_2025.total_incidents * 100).toFixed(1);
-    h += `<div class="stat-row"><span class="stat-label">${name}</span><span class="stat-val">${fmt(count)}</span></div>`;
-    h += `<div class="bar-bg"><div class="bar-fill" style="width:${(count/maxOff*100).toFixed(1)}%;background:var(--cf)"></div></div>`;
-  });
-  h += `</div>`;
-
-  // ── Arrest Demographics by Race ──
-  const fbi = FBI_ARREST_DATA;
-  h += `<div class="card" style="max-width:1200px;margin:1.5rem auto"><h2>👮 Arrest Demographics by Race — ${c.metadata.city}</h2>`;
-  h += `<p style="font-size:.75rem;color:var(--mu);margin-bottom:1rem">
-    FBI UCR arrest data. ${fmt(fbi.total_arrests)} total arrests by San Diego Police Department.
-    Race is <strong>as recorded by the arresting agency</strong>. Disparity ratio = % of arrests ÷ % of population.
-  </p>`;
-
-  fbi.arrests_by_race.forEach(r => {
-    const popPct = r.pop_pct != null ? r.pop_pct : '—';
-    const arrestPct = r.pct;
-    const ratio = r.disparity;
-    const ratioStr = ratio != null ? ratio.toFixed(2) + '×' : '—';
-    let ratioColor = 'var(--mu)';
-    let ratioLabel = '';
-    if (ratio != null) {
-      if (ratio >= 2.0) { ratioColor = 'var(--sc)'; ratioLabel = ' 🔴 Overrepresented'; }
-      else if (ratio > 1.0) { ratioColor = 'var(--cf)'; ratioLabel = ' 🟠 Slightly over'; }
-      else if (ratio >= 0.8) { ratioColor = 'var(--uc)'; ratioLabel = ' 🟢 Proportional'; }
-      else { ratioColor = 'var(--ac)'; ratioLabel = ' 🔵 Underrepresented'; }
-    }
-
-    h += `<div style="margin-bottom:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.25rem">
-        <span style="font-size:.8rem;font-weight:600;color:var(--tx)">${r.race}</span>
-        <span style="font-size:.7rem;color:${ratioColor};font-weight:600">${ratioStr} ${ratioLabel}</span>
-      </div>`;
-
-    // Population bar
-    h += `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:3px">
-      <span style="width:100px;font-size:.68rem;color:var(--mu);text-align:right;flex-shrink:0">Population</span>
-      <div style="flex:1;height:18px;background:rgba(255,255,255,.03);border-radius:4px;overflow:hidden">
-        <div style="height:100%;width:${typeof popPct === 'number' ? popPct : 0}%;background:var(--ac);border-radius:4px;display:flex;align-items:center;padding-left:.5rem;font-size:.65rem;font-weight:600">${typeof popPct === 'number' && popPct >= 6 ? popPct+'%' : ''}</div>
-      </div>
-      <span style="width:50px;font-size:.7rem;font-weight:600;font-family:'SF Mono',monospace;text-align:right;color:var(--ac);flex-shrink:0">${popPct}%</span>
-    </div>`;
-
-    // Arrests bar  
-    h += `<div style="display:flex;align-items:center;gap:.5rem">
-      <span style="width:100px;font-size:.68rem;color:var(--mu);text-align:right;flex-shrink:0">Arrests</span>
-      <div style="flex:1;height:18px;background:rgba(255,255,255,.03);border-radius:4px;overflow:hidden">
-        <div style="height:100%;width:${arrestPct}%;background:${ratioColor};border-radius:4px;display:flex;align-items:center;padding-left:.5rem;font-size:.65rem;font-weight:600;color:${arrestPct>10?'#fff':ratioColor}">${arrestPct>=6?arrestPct+'%':''}</div>
-      </div>
-      <span style="width:50px;font-size:.7rem;font-weight:600;font-family:'SF Mono',monospace;text-align:right;color:${ratioColor};flex-shrink:0">${arrestPct}%</span>
-    </div>`;
-
-    h += `<div style="font-size:.64rem;color:var(--mu);margin-top:2px">${fmt(r.count)} arrests · pop: ${r.pop_pct != null ? r.pop_pct + '% of city' : 'N/A'}`;
-    if (r.pop_label) h += ` <span style="color:var(--cf)">(${r.pop_label})</span>`;
-    if (r.note) h += ` · ${r.note}`;
-    h += `</div>`;
-    h += `</div>`;
-  });
-
-  h += `<div style="margin-top:1rem;padding:.75rem;background:rgba(79,195,247,.04);border-radius:8px;font-size:.7rem;color:var(--mu);line-height:1.5">
-    📋 <strong>Interpretation:</strong> Disparity ratio = % of arrests ÷ % of population. >1 means overrepresented in arrests relative to population.<br>
-    ⚠️ Arrest data includes all arrests by San Diego Police Department. Race is as recorded by the arresting agency.
-    FBI UCR does not separate Hispanic/Latino as a distinct racial category in arrest data.
-    "White" category includes individuals of Hispanic/Latino ethnicity. Unknown race excluded from disparity calculations.
-  </div>`;
-
-  h += `</div>`;
-
-  // ── Neighborhood Rankings ──
-  h += `<div id="neighborhoodRankings" style="max-width:1200px;margin:1.5rem auto;padding:0 2rem"></div>`;
-
-  // ── Data source note ──
-  h += `<div style="max-width:1200px;margin:1.5rem auto 0;padding:0 2rem">
-    <div style="background:rgba(255,255,255,.02);border:1px solid var(--bd);border-radius:8px;padding:1rem;font-size:.7rem;color:var(--mu);line-height:1.6">
-      📋 <strong>Data Sources:</strong> SDPD NIBRS Crime Offenses 2025 · FBI Crime Data Explorer — Arrestee Race & Offense Category · US Census ACS 5-Year 2023.<br>
-      Crime rates calculated per 1,000 residents using estimated neighborhood population from Census tract data.<br>
-      All data sourced from <a href="https://data.sandiego.gov" target="_blank" style="color:var(--ac)">data.sandiego.gov</a> San Diego Open Data Portal.
-    </div>
-  </div>`;
-
-  document.getElementById('crimeContent').innerHTML = h;
-
-  // Render neighborhoods if loaded
-  if (crimeNeighborhoods) renderNeighborhoodTable();
-}
-
-function renderNeighborhoodTable() {
-  if (!crimeNeighborhoods) return;
-  const all = [...crimeNeighborhoods];
-  const sorted = all.sort((a,b) => {
-    return crimeNeighborhoodSortDir === 'desc'
-      ? b.crime_rate_per_1000 - a.crime_rate_per_1000
-      : a.crime_rate_per_1000 - b.crime_rate_per_1000;
-  });
-  const isHighest = crimeNeighborhoodSortDir === 'desc';
-  const display = isHighest ? sorted.slice(0, 10) : sorted.slice(0, 5);
-  const title = isHighest ? '🔴 Highest Crime Neighborhoods (Top 10)' : '🟢 Lowest Crime Neighborhoods (Bottom 5)';
-
-  let h = `<div class="card"><h2>${title}</h2>`;
-  h += `<div style="margin-bottom:.75rem">
-    <button class="year-btn${isHighest?' active':''}" onclick="toggleNeighborhoodSort('desc')">Highest</button>
-    <button class="year-btn${!isHighest?' active':''}" onclick="toggleNeighborhoodSort('asc')" style="margin-left:.25rem">Lowest</button>
-  </div>`;
-
-  h += `<table style="width:100%;border-collapse:collapse;font-size:.75rem">
-    <thead><tr>
-      <th style="text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--mu);font-size:.65rem">Neighborhood</th>
-      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--cf);font-size:.65rem">Total Rate/1k</th>
-      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--sc);font-size:.65rem">Violent/1k</th>
-      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--cf);font-size:.65rem">Property/1k</th>
-      <th style="padding:.4rem .6rem;border-bottom:1px solid var(--bd);color:var(--mu);font-size:.65rem">Population</th>
-    </tr></thead><tbody>`;
-
-  display.forEach((n, i) => {
-    const bg = i % 2 === 0 ? 'rgba(255,255,255,.01)' : 'transparent';
-    const rateColor = isHighest ? (n.crime_rate_per_1000 > 100 ? 'var(--sc)' : 'var(--cf)') : 'var(--uc)';
-    h += `<tr style="background:${bg}">
-      <td style="padding:.35rem .6rem;font-weight:500">${n.neighborhood}</td>
-      <td style="padding:.35rem .6rem;text-align:center;font-family:'SF Mono',monospace;color:${rateColor};font-weight:600">${n.crime_rate_per_1000.toFixed(1)}</td>
-      <td style="padding:.35rem .6rem;text-align:center;font-family:'SF Mono',monospace;color:var(--sc)">${n.violent_rate_per_1000.toFixed(1)}</td>
-      <td style="padding:.35rem .6rem;text-align:center;font-family:'SF Mono',monospace;color:var(--cf)">${n.property_rate_per_1000.toFixed(1)}</td>
-      <td style="padding:.35rem .6rem;text-align:center;font-family:'SF Mono',monospace;color:var(--tx)">${fmt(n.population)}</td>
-    </tr>`;
-  });
-
-  h += `</tbody></table>`;
-  h += `<div style="margin-top:.75rem;font-size:.68rem;color:var(--mu)">
-    Showing ${display.length} of ${all.length} neighborhoods. ${isHighest ? 'Default sort: highest crime rate first.' : 'Default sort: lowest crime rate first.'}
-    Rates are incidents per 1,000 residents based on estimated neighborhood population from Census tract data.
-  </div>`;
-  h += `</div>`;
-
-  document.getElementById('neighborhoodRankings').innerHTML = h;
-}
-
-function toggleNeighborhoodSort(dir) {
-  crimeNeighborhoodSortDir = dir;
-  renderNeighborhoodTable();
-}
-
-async function loadCrimeNeighborhoods() {
-  try {
-    const r = await fetch('sd_crime_neighborhoods.json?t=' + Date.now());
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    crimeNeighborhoods = data.neighborhoods || [];
-    if (document.getElementById('tabCrime').style.display !== 'none' || crimeNeighborhoods.length) {
-      renderNeighborhoodTable();
-    }
-  } catch(e) {
-    console.log('Crime neighborhood data deferred:', e.message);
-  }
-}
 
 // ══════════════ RENDER ══════════════
 function fmt(n) { return n.toLocaleString(); }
@@ -1081,15 +840,12 @@ async function loadAllCities() {
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tabCensus').style.display = tab === 'census' ? '' : 'none';
-  document.getElementById('tabCrime').style.display = tab === 'crime' ? '' : 'none';
   document.getElementById('tabVoting').style.display = tab === 'voting' ? '' : 'none';
   document.querySelectorAll('.tab').forEach(t => {
     if ((tab==='census' && t.textContent.includes('Census')) || 
-        (tab==='crime' && t.textContent.includes('Crime')) ||
         (tab==='voting' && t.textContent.includes('Voting'))) t.classList.add('active');
   });
   if (tab === 'voting') renderVoting(currentNationalYear);
-  if (tab === 'crime') renderCrime();
 }
 
 async function loadCountyData() {
@@ -1111,7 +867,6 @@ currentData = SD;
 renderCensus();
 loadAllCities();
 loadCountyData();
-loadCrimeNeighborhoods();
 </script>
 </body>
 </html>
