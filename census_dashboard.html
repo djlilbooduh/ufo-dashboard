@@ -127,12 +127,20 @@ function filterCities() {
   } else {
     dd.innerHTML = matches.map((k, i) => {
       const cls = (k === selectedCity ? ' active' : '') + (i === activeIdx ? ' active' : '');
-      return `<div class="item${cls}" data-key="${k.replace(/"/g, '&quot;')}" onmousedown="selectCity('${k.replace(/'/g, "\\'")}')">📍 ${cleanName(k)}</div>`;
+      return `<div class="item${cls}" data-key="${k.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}">📍 ${cleanName(k)}</div>`;
     }).join('');
   }
   dd.classList.add('show');
   activeIdx = -1;
 }
+
+// Event delegation for dropdown clicks
+document.getElementById('cityDropdown').addEventListener('mousedown', function(e) {
+  const item = e.target.closest('.item');
+  if (item && item.dataset.key) {
+    selectCity(item.dataset.key);
+  }
+});
 
 function showDropdown() {
   filterCities();
@@ -143,7 +151,7 @@ function handleKey(e) {
   const items = dd.querySelectorAll('.item');
   if (e.key === 'ArrowDown') { activeIdx = Math.min(activeIdx + 1, items.length - 1); filterCities(); e.preventDefault(); }
   else if (e.key === 'ArrowUp') { activeIdx = Math.max(activeIdx - 1, 0); filterCities(); e.preventDefault(); }
-  else if (e.key === 'Enter') { if (activeIdx >= 0 && items[activeIdx]) items[activeIdx].click(); e.preventDefault(); }
+  else if (e.key === 'Enter') { if (activeIdx >= 0 && items[activeIdx] && items[activeIdx].dataset.key) { selectCity(items[activeIdx].dataset.key); } e.preventDefault(); }
   else if (e.key === 'Escape') { dd.classList.remove('show'); }
 }
 
