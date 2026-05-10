@@ -436,14 +436,56 @@ body {
 @media (max-width: 600px) {
   #topbar { padding: 0.5rem 0.8rem; }
   #topbar h1 { font-size: 1rem; }
-  #legend { right: 4px; bottom: 8px; padding: 8px 10px; font-size: 0.65rem; }
+  #legend { right: 4px; bottom: 8px; padding: 8px 10px; font-size: 0.65rem; max-width: 170px; }
   #info-panel { left: 4px; bottom: 8px; padding: 6px 8px; font-size: 0.65rem; }
   #filter-panel { width: 240px; right: 4px; padding: 10px 12px; }
   #filter-toggle { right: 4px; top: 6px; padding: 0.35rem 0.7rem; font-size: 0.68rem; }
+  #map-search { width: 110px; font-size: 0.68rem; }
+  .leaflet-popup-content { min-width: 180px !important; max-width: 240px !important; }
+  .popup-card { padding: 6px 0; }
+  .popup-header { font-size: 0.85rem; }
+  .popup-stat { font-size: 0.7rem; }
 }
+
+/* ── Loading spinner ── */
+#loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.8rem;
+  transition: opacity 0.35s ease;
+  pointer-events: all;
+}
+#loading-overlay.fade-out { opacity: 0; pointer-events: none; }
+#loading-spinner {
+  width: 34px; height: 34px;
+  border: 3px solid rgba(79,195,247,0.15);
+  border-top-color: var(--ac);
+  border-radius: 50%;
+  animation: ky-spin 0.75s linear infinite;
+}
+@keyframes ky-spin { to { transform: rotate(360deg); } }
+#loading-text { color: var(--mu); font-size: 0.76rem; letter-spacing: 0.3px; }
+
+/* ── Legend lean gradient ── */
+.legend-lean-bar {
+  height: 7px; border-radius: 4px;
+  background: linear-gradient(to right, #4fc3f7, #81d4fa 25%, #b0bec5 50%, #ff8a80 75%, #ff5252);
+  margin-bottom: 4px;
+}
+.legend-lean-labels {
+  display: flex; justify-content: space-between;
+  font-size: 0.6rem; color: var(--mu);
+}
+.legend-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 0; }
 </style>
 </head>
 <body>
+
+<div id="loading-overlay">
+  <div id="loading-spinner"></div>
+  <div id="loading-text">Loading 467 cities…</div>
+</div>
 
 <div id="topbar">
   <h1>📍 US Criminal Activity</h1>
@@ -465,6 +507,14 @@ body {
   <div class="legend-row"><span class="legend-dot" style="background:#ffab40;"></span><span class="legend-label">25K – 100K</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#ff6d00;"></span><span class="legend-label">100K – 500K</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#ff5252;"></span><span class="legend-label">&gt; 500K</span></div>
+  <div class="legend-divider"></div>
+  <h3>Political Lean (2024)</h3>
+  <div class="legend-lean-bar"></div>
+  <div class="legend-lean-labels">
+    <span style="color:#4fc3f7;font-weight:600">Dem</span>
+    <span style="color:var(--mu)">Swing</span>
+    <span style="color:#ff5252;font-weight:600">GOP</span>
+  </div>
 </div>
 
 <!-- Filter toggle button -->
@@ -890,10 +940,25 @@ document.getElementById('filter-reset').addEventListener('click', function() {
 // ── Initial state ──
 updateCityCount();
 
+// ── Hide loading spinner ──
+const loadingOverlay = document.getElementById('loading-overlay');
+if (loadingOverlay) {
+  loadingOverlay.classList.add('fade-out');
+  setTimeout(() => { if (loadingOverlay.parentNode) loadingOverlay.remove(); }, 400);
+}
+
 // Fit to all markers
 if (markers.length > 0) {
   const group = L.featureGroup(markers);
   map.fitBounds(group.getBounds().pad(0.05));
+}
+
+// ── Mobile: auto-collapse filter panel ──
+if (window.innerWidth < 768) {
+  if (!filterPanel.classList.contains('collapsed')) {
+    filterPanel.classList.add('collapsed');
+    filterArrow.textContent = '▸';
+  }
 }
 </script>
 </body>

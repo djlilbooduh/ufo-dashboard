@@ -55,8 +55,10 @@ header .sub{color:var(--mu);font-size:.8rem}
 .city-dropdown .no-results,.city-dropdown .loading{padding:.5rem .9rem;font-size:.75rem;color:var(--mu);text-align:center}
 .export-btn{background:var(--sf);border:1px solid var(--bd);color:var(--mu);padding:.4rem .75rem;border-radius:5px;font-size:.72rem;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .export-btn:hover{color:var(--ac);border-color:var(--ac);background:rgba(79,195,247,.08)}
+.map-back-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--sf);border:1px solid var(--bd);color:var(--ac);border-radius:6px;font-size:1rem;text-decoration:none;cursor:pointer;transition:all .15s;flex-shrink:0}
+.map-back-btn:hover{border-color:var(--ac);background:rgba(79,195,247,.12)}
 footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top:1px solid var(--bd);margin-top:2rem}
-@media(max-width:768px){.race-bar-row{flex-wrap:wrap}.race-label{width:100%;text-align:left;margin-bottom:.1rem}}
+@media(max-width:768px){.race-bar-row{flex-wrap:wrap}.race-label{width:100%;text-align:left;margin-bottom:.1rem}.grid{grid-template-columns:1fr!important;padding:0 1rem}.tabs{padding:0 .5rem;gap:.15rem}.tab{padding:.4rem .8rem;font-size:.72rem}.city-search{padding:0 .75rem}.map-back-btn{width:32px;height:32px;font-size:.9rem}}
 </style>
 </head>
 <body>
@@ -70,6 +72,7 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
   </div>
   <div class="city-search" style="max-width:500px;margin:1rem auto 0;position:relative">
     <div style="display:flex;gap:.5rem;align-items:center">
+      <a href="https://djlilbooduh.github.io/ufo-dashboard/map.html" class="map-back-btn" title="Back to Map">🗺️</a>
       <input type="text" id="citySearch" placeholder="🔍 Search 467 CA cities…" autocomplete="off" style="flex:1"
              onfocus="showCityDropdown()" oninput="filterCityDropdown()" onkeydown="handleCityKey(event)">
       <button id="exportBtn" class="export-btn" onclick="exportCSV()" title="Download CSV for this city">📥 CSV</button>
