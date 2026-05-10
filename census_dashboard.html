@@ -3,257 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>📊 Census Demographics Dashboard</title>
+<title>📊 San Diego — Census & Voting Dashboard</title>
 <style>
-:root{--bg:#0a0a10;--sf:#141420;--bd:#1e1e3a;--tx:#e0e0f0;--mu:#8888aa;--ac:#4fc3f7;--sc:#ff5252;--cf:#ffab40;--uc:#66bb6a}
+:root{--bg:#0a0a10;--sf:#141420;--bd:#1e1e3a;--tx:#e0e0f0;--mu:#8888aa;--ac:#4fc3f7;--sc:#ff5252;--cf:#ffab40;--uc:#66bb6a;--pl:#ce93d8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;line-height:1.6}
 header{background:linear-gradient(135deg,#0d1b2a,#1b2838,#0d1b2a);border-bottom:1px solid #1a1a3a;padding:2rem 2rem;text-align:center}
 header h1{font-size:1.8rem;color:var(--ac);margin-bottom:.25rem}
 header .sub{color:var(--mu);font-size:.8rem}
-.controls{max-width:1200px;margin:1rem auto 0;padding:0 2rem;display:flex;gap:.75rem;align-items:center;justify-content:center}
-.controls select{background:var(--sf);border:1px solid var(--bd);color:var(--tx);padding:.6rem 1.2rem;border-radius:6px;font-size:.9rem;outline:none;cursor:pointer;min-width:220px}
-.controls select:focus{border-color:var(--ac)}
-.controls .source{color:var(--mu);font-size:.7rem}
-/* Stats grid */
+.tabs{display:flex;justify-content:center;gap:.25rem;max-width:1200px;margin:1rem auto 0;padding:0 2rem}
+.tab{background:var(--sf);border:1px solid var(--bd);color:var(--mu);padding:.5rem 1.5rem;border-radius:6px 6px 0 0;font-size:.8rem;cursor:pointer;transition:all .15s;border-bottom:none}
+.tab:hover{color:var(--tx)} .tab.active{background:var(--ac);color:#000;border-color:var(--ac);font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;max-width:1200px;margin:1.5rem auto;padding:0 2rem}
 .card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:1.5rem;transition:border-color .2s,box-shadow .2s}
 .card:hover{border-color:var(--ac);box-shadow:0 0 20px rgba(79,195,247,.06)}
-.card h2{font-size:.85rem;color:var(--ac);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:.5rem}
-.card h2 .icon{font-size:1.1rem}
-/* Population overview */
-.stat-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;font-size:.82rem}
-.stat-label{color:var(--mu)}
-.stat-val{font-weight:600;font-family:'SF Mono','Cascadia Code',monospace;color:var(--ac)}
-.stat-sub{font-size:.65rem;color:var(--mu);margin-top:.15rem}
+.card h2{font-size:.85rem;color:var(--ac);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.5px}
 .big-num{font-size:2.2rem;font-weight:700;color:var(--ac);font-family:'SF Mono','Cascadia Code',monospace;margin-bottom:.25rem}
 .big-label{font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;font-size:.82rem}
+.stat-label{color:var(--mu)} .stat-val{font-weight:600;font-family:'SF Mono',monospace}
+.bar-bg{height:5px;background:rgba(255,255,255,.05);border-radius:3px;margin:.3rem 0 .6rem;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 1s}
 /* Race bars */
 .race-section{max-width:1200px;margin:1.5rem auto;padding:0 2rem}
-.race-header{font-size:.85rem;color:var(--ac);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.5px}
-.race-bar-row{display:flex;align-items:center;margin-bottom:.5rem;gap:.75rem}
+.race-bar-row{display:flex;align-items:center;margin-bottom:.45rem;gap:.75rem}
 .race-label{width:200px;font-size:.78rem;text-align:right;flex-shrink:0;color:var(--tx)}
-.race-bar-track{flex:1;height:28px;background:rgba(255,255,255,.03);border-radius:5px;overflow:hidden;position:relative}
-.race-bar-fill{height:100%;border-radius:5px;transition:width 1s ease-out;display:flex;align-items:center;padding-left:.75rem;font-size:.7rem;font-weight:600;min-width:0;white-space:nowrap}
-.race-pct{width:65px;font-size:.8rem;font-weight:600;font-family:'SF Mono',monospace;flex-shrink:0}
-.race-count{width:85px;font-size:.7rem;color:var(--mu);flex-shrink:0;text-align:right}
-/* Two column layout for lower sections */
-.section-grid{max-width:1200px;margin:1.5rem auto;padding:0 2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-@media(max-width:768px){.section-grid{grid-template-columns:1fr}.race-bar-row{flex-wrap:wrap}.race-label{width:100%;text-align:left;margin-bottom:.15rem}}
-.education-bar,.poverty-bar{height:6px;background:rgba(255,255,255,.05);border-radius:3px;margin:.3rem 0 .6rem;overflow:hidden}
-.education-fill{height:100%;background:var(--ac);border-radius:3px;transition:width 1s}
-.poverty-fill{height:100%;background:var(--cf);border-radius:3px;transition:width 1s}
+.race-bar-track{flex:1;height:26px;background:rgba(255,255,255,.03);border-radius:5px;overflow:hidden}
+.race-bar-fill{height:100%;border-radius:5px;transition:width 1s ease-out;display:flex;align-items:center;padding-left:.75rem;font-size:.68rem;font-weight:600;white-space:nowrap}
+.race-pct{width:60px;font-size:.8rem;font-weight:600;font-family:'SF Mono',monospace;flex-shrink:0}
+.race-count{width:80px;font-size:.7rem;color:var(--mu);flex-shrink:0;text-align:right}
+/* Voting table */
+.vote-table{max-width:1200px;margin:1.5rem auto;padding:0 2rem}
+.vote-table table{width:100%;border-collapse:collapse;font-size:.78rem}
+.vote-table th{color:var(--mu);text-transform:uppercase;font-size:.65rem;letter-spacing:.5px;padding:.6rem .8rem;text-align:center;border-bottom:1px solid var(--bd)}
+.vote-table td{padding:.5rem .8rem;text-align:center;border-bottom:1px solid rgba(255,255,255,.04)}
+.vote-table .race-col{text-align:left;color:var(--tx);font-weight:500}
+.vote-table .dem{color:#4fc3f7} .vote-table .gop{color:#ff5252} .vote-table .other{color:var(--mu)}
+.vote-table .highlight-row{background:rgba(79,195,247,.04)}
+.year-selector{display:flex;justify-content:center;gap:.5rem;margin-bottom:1rem}
+.year-btn{background:var(--sf);border:1px solid var(--bd);color:var(--mu);padding:.35rem 1.2rem;border-radius:5px;font-size:.78rem;cursor:pointer;transition:all .15s}
+.year-btn:hover{color:var(--tx)} .year-btn.active{background:var(--ac);color:#000;border-color:var(--ac);font-weight:600}
 footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top:1px solid var(--bd);margin-top:2rem}
-footer a{color:var(--ac);text-decoration:none}
+@media(max-width:768px){.race-bar-row{flex-wrap:wrap}.race-label{width:100%;text-align:left;margin-bottom:.1rem}}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>📊 US Census Demographics Dashboard</h1>
-  <div class="sub">American Community Survey · 2023 5-Year Estimates</div>
-  <div class="controls">
-    <select id="citySelect" onchange="loadCity()">
-      <option>Loading cities…</option>
-    </select>
-    <span class="source">Source: census.gov API</span>
+  <h1>📊 San Diego — Census & Voting Dashboard</h1>
+  <div class="sub">US Census ACS 2023 · National Exit Polls 2016–2024</div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('census')">🏙️ Census Demographics</div>
+    <div class="tab" onclick="showTab('voting')">🗳️ Voting by Race (National)</div>
   </div>
 </header>
 
-<!-- Population Overview -->
-<div class="grid" id="popCards"></div>
-
-<!-- Race / Ethnicity Breakdown -->
-<div class="race-section">
-  <div class="race-header">🧑 Race & Ethnicity</div>
-  <div id="raceBars"></div>
+<!-- CENSUS TAB -->
+<div id="tabCensus">
+  <!-- Population Overview -->
+  <div class="grid" id="popCards"></div>
+  <!-- Race Chart -->
+  <div class="race-section" id="raceSection"></div>
+  <!-- Economics + Education -->
+  <div class="grid" style="grid-template-columns:1fr 1fr" id="detailGrid"></div>
 </div>
 
-<!-- Economics + Education -->
-<div class="section-grid">
-  <div class="card" id="economicsCard"></div>
-  <div class="card" id="educationCard"></div>
+<!-- VOTING TAB -->
+<div id="tabVoting" style="display:none">
+  <div class="vote-table" id="votingTable"></div>
 </div>
 
-<footer>
-  Data: <a href="https://www.census.gov/data/developers/data-sets/acs-5year.html" target="_blank">US Census Bureau · ACS 2023 5-Year Estimates</a> ·
-  Generated by Ky · OpenClaw
-</footer>
+<footer>Data: US Census Bureau · ACS 2023 | CNN/NEP National Exit Polls | Pew Research Center</footer>
 
 <script>
-const DATA_URL = 'census_data.json?v=2';
-let censusData = null;
-let allCities = [];
-let selectedCity = null;
-let activeIdx = -1;
+// ══════════════ SAN DIEGO CENSUS DATA (embedded) ══════════════
+const SD = {
+  total: 1385061, voting_age: 1125769, income: 104321, poverty: 29040, poverty_pct: 2.1,
+  bachelors: 281352, masters: 132824, professional: 35379, doctorate: 37554,
+  race: [
+    {group:"White (non-Hispanic)", count:573281, pct:41.4, color:"#4fc3f7"},
+    {group:"Hispanic/Latino", count:409493, pct:29.6, color:"#ffab40"},
+    {group:"Asian (non-Hispanic)", count:238921, pct:17.2, color:"#66bb6a"},
+    {group:"Black/African American", count:74890, pct:5.4, color:"#ff5252"},
+    {group:"Two or More Races", count:72136, pct:5.2, color:"#ce93d8"},
+    {group:"Other Race", count:8113, pct:0.6, color:"#8888aa"},
+    {group:"Native Hawaiian/PI", count:5862, pct:0.4, color:"#80cbc4"},
+    {group:"American Indian/AK", count:2365, pct:0.2, color:"#a1887f"}
+  ]
+};
 
-// ── Boot ──
-(function init() {
-  document.getElementById('popCards').innerHTML = '<div class="card" style="text-align:center"><div class="big-num" style="color:var(--mu)">⏳</div><div class="stat-sub">Loading 467 California cities…</div></div>';
-  loadData();
-})();
-
-async function loadData() {
-  try {
-    const r = await fetch(DATA_URL);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    censusData = await r.json();
-    if (!censusData.cities || !Object.keys(censusData.cities).length) throw new Error('No cities in data');
-    selectedCity = 'San Diego city, California';
-    populateDropdown();
-    loadCity();
-  } catch(e) {
-    console.error('Load error:', e);
-    document.getElementById('popCards').innerHTML = '<div class="card" style="text-align:center;color:var(--sc)">⚠ Unable to load data<br><small>' + e.message + '</small></div>';
+// ══════════════ NATIONAL VOTING DATA ══════════════
+const VOTE = {
+  2016: {
+    popular: "Clinton 48.2% · Trump 46.1%",
+    race_vote: [
+      {race:"White", share:71, dem:37, gop:58, other:5},
+      {race:"Black", share:12, dem:88, gop:8, other:4},
+      {race:"Hispanic/Latino", share:11, dem:65, gop:29, other:6},
+      {race:"Asian", share:4, dem:65, gop:29, other:6},
+      {race:"Other", share:3, dem:56, gop:37, other:7}
+    ]
+  },
+  2020: {
+    popular: "Biden 51.3% · Trump 46.9%",
+    race_vote: [
+      {race:"White", share:67, dem:41, gop:58, other:1},
+      {race:"Black", share:13, dem:87, gop:12, other:1},
+      {race:"Hispanic/Latino", share:13, dem:65, gop:32, other:3},
+      {race:"Asian", share:4, dem:63, gop:31, other:6},
+      {race:"Other", share:4, dem:55, gop:41, other:4}
+    ]
+  },
+  2024: {
+    popular: "Trump 49.8% · Harris 48.3%",
+    race_vote: [
+      {race:"White", share:71, dem:39, gop:57, other:4},
+      {race:"Black", share:11, dem:85, gop:13, other:2},
+      {race:"Hispanic/Latino", share:12, dem:52, gop:46, other:2},
+      {race:"Asian", share:3, dem:54, gop:39, other:7},
+      {race:"Other", share:3, dem:50, gop:43, other:7}
+    ]
   }
-}
+};
 
-function populateDropdown() {
-  // Sort alphabetically, strip city/town suffix for sort
-  allCities = Object.keys(censusData.cities).sort((a, b) => {
-    const na = a.replace(/ (city|town), California$/, '');
-    const nb = b.replace(/ (city|town), California$/, '');
-    return na.localeCompare(nb);
-  });
-  const input = document.getElementById('citySearch');
-  input.value = 'San Diego, CA';
-  input.placeholder = '🔍 Search ' + allCities.length + ' cities…';
-  filterCities();
-  loadCity();
-}
-
-function cleanName(key) {
-  return key.replace(/ (city|town), California$/, ', CA');
-}
-
-function filterCities() {
-  const query = document.getElementById('citySearch').value.toLowerCase();
-  const dd = document.getElementById('cityDropdown');
-  const matches = allCities.filter(k => cleanName(k).toLowerCase().includes(query));
-  
-  if (matches.length === 0) {
-    dd.innerHTML = '<div class="no-results">No cities match</div>';
-  } else {
-    dd.innerHTML = matches.map((k, i) => {
-      const cls = (k === selectedCity ? ' active' : '') + (i === activeIdx ? ' active' : '');
-      return `<div class="item${cls}" data-key="${k.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}">📍 ${cleanName(k)}</div>`;
-    }).join('');
-  }
-  dd.classList.add('show');
-  activeIdx = -1;
-}
-
-// Event delegation for dropdown clicks
-document.getElementById('cityDropdown').addEventListener('mousedown', function(e) {
-  const item = e.target.closest('.item');
-  if (item && item.dataset.key) {
-    selectCity(item.dataset.key);
-  }
-});
-
-function showDropdown() {
-  filterCities();
-}
-
-function handleKey(e) {
-  const dd = document.getElementById('cityDropdown');
-  const items = dd.querySelectorAll('.item');
-  if (e.key === 'ArrowDown') { activeIdx = Math.min(activeIdx + 1, items.length - 1); filterCities(); e.preventDefault(); }
-  else if (e.key === 'ArrowUp') { activeIdx = Math.max(activeIdx - 1, 0); filterCities(); e.preventDefault(); }
-  else if (e.key === 'Enter') { if (activeIdx >= 0 && items[activeIdx] && items[activeIdx].dataset.key) { selectCity(items[activeIdx].dataset.key); } e.preventDefault(); }
-  else if (e.key === 'Escape') { dd.classList.remove('show'); }
-}
-
-function selectCity(key) {
-  selectedCity = key;
-  document.getElementById('citySearch').value = cleanName(key);
-  document.getElementById('cityDropdown').classList.remove('show');
-  try { loadCity(); } catch(e) { console.error(e); }
-}
-
-// Close dropdown on outside click
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.city-search')) {
-    document.getElementById('cityDropdown').classList.remove('show');
-  }
-});
-
-function loadCity() {
-  const d = censusData.cities[selectedCity];
-  if (!d) return;
-  renderPopulation(d);
-  renderRace(d);
-  renderEconomics(d);
-  renderEducation(d);
-}
-
+// ══════════════ RENDER ══════════════
 function fmt(n) { return n.toLocaleString(); }
 
-function renderPopulation(d) {
+function renderCensus() {
+  // Population cards
   document.getElementById('popCards').innerHTML = `
     <div class="card" style="text-align:center">
       <div class="big-label">Total Population</div>
-      <div class="big-num">${fmt(d.population.total)}</div>
-      <div class="stat-sub">${d.state} · ACS ${d.year}</div>
+      <div class="big-num">${fmt(SD.total)}</div>
+      <div class="stat-sub">San Diego, CA · ACS 2023</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Voting Age (18+)</div>
-      <div class="big-num">${fmt(d.population.voting_age)}</div>
-      <div class="stat-sub">${d.population.voting_age_pct}% of population</div>
+      <div class="big-num">${fmt(SD.voting_age)}</div>
+      <div class="stat-sub">${(100*SD.voting_age/SD.total).toFixed(1)}% of population</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Median Household Income</div>
-      <div class="big-num">$${fmt(d.economics.median_household_income)}</div>
-      <div class="stat-sub">${d.year} inflation-adjusted dollars</div>
+      <div class="big-num">$${fmt(SD.income)}</div>
+      <div class="stat-sub">2023 inflation-adjusted dollars</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Poverty Rate</div>
-      <div class="big-num" style="color:var(--cf)">${d.economics.poverty_pct}%</div>
-      <div class="stat-sub">${fmt(d.economics.poverty_count)} residents below poverty line</div>
+      <div class="big-num" style="color:var(--cf)">${SD.poverty_pct}%</div>
+      <div class="stat-sub">${fmt(SD.poverty)} residents below poverty line</div>
     </div>`;
-}
 
-function renderRace(d) {
-  let html = '';
-  d.race.forEach(r => {
-    html += `
+  // Race bars
+  let raceHtml = '<div class="card"><h2>🧑 Race & Ethnicity — San Diego</h2>';
+  SD.race.forEach(r => {
+    raceHtml += `
     <div class="race-bar-row">
       <div class="race-label">${r.group}</div>
       <div class="race-bar-track">
-        <div class="race-bar-fill" style="width:${r.pct}%;background:${r.color};color:${r.pct > 10 ? '#fff' : r.color}">${r.pct >= 5 ? r.pct + '%' : ''}</div>
+        <div class="race-bar-fill" style="width:${r.pct}%;background:${r.color};color:${r.pct>10?'#fff':r.color}">${r.pct>=5?r.pct+'%':''}</div>
       </div>
       <div class="race-pct" style="color:${r.color}">${r.pct}%</div>
       <div class="race-count">${fmt(r.count)}</div>
     </div>`;
   });
-  document.getElementById('raceBars').innerHTML = html;
+  raceHtml += '</div>';
+  document.getElementById('raceSection').innerHTML = raceHtml;
+
+  // Economics + Education
+  const eduTotal = SD.bachelors + SD.masters + SD.professional + SD.doctorate;
+  const eduPct = (eduTotal / (SD.total * 0.75) * 100).toFixed(1);
+  document.getElementById('detailGrid').innerHTML = `
+    <div class="card">
+      <h2>💰 Economics</h2>
+      <div class="stat-row"><span class="stat-label">Median Household Income</span><span class="stat-val" style="color:var(--ac)">$${fmt(SD.income)}</span></div>
+      <div class="stat-row" style="margin-top:.75rem"><span class="stat-label">Below Poverty Line</span><span class="stat-val" style="color:var(--cf)">${SD.poverty_pct}%</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${SD.poverty_pct*5}%;background:var(--cf)"></div></div>
+      <div class="stat-row"><span class="stat-label">Residents in poverty</span><span class="stat-val">${fmt(SD.poverty)}</span></div>
+    </div>
+    <div class="card">
+      <h2>🎓 Education (Age 25+)</h2>
+      <div class="stat-row"><span class="stat-label">Bachelor's or Higher</span><span class="stat-val" style="color:var(--ac)">${fmt(eduTotal)}</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,eduPct)}%;background:var(--ac)"></div></div>
+      <div class="stat-row"><span class="stat-label">Bachelor's Degree</span><span class="stat-val">${fmt(SD.bachelors)}</span></div>
+      <div class="stat-row"><span class="stat-label">Master's Degree</span><span class="stat-val">${fmt(SD.masters)}</span></div>
+      <div class="stat-row"><span class="stat-label">Professional Degree</span><span class="stat-val">${fmt(SD.professional)}</span></div>
+      <div class="stat-row"><span class="stat-label">Doctorate</span><span class="stat-val">${fmt(SD.doctorate)}</span></div>
+    </div>`;
 }
 
-function renderEconomics(d) {
-  document.getElementById('economicsCard').innerHTML = `
-    <h2><span class="icon">💰</span> Economics</h2>
-    <div class="stat-row"><span class="stat-label">Median Household Income</span><span class="stat-val">$${fmt(d.economics.median_household_income)}</span></div>
-    <div class="stat-row" style="margin-top:.75rem"><span class="stat-label">Below Poverty Line</span><span class="stat-val" style="color:var(--cf)">${d.economics.poverty_pct}%</span></div>
-    <div class="poverty-bar"><div class="poverty-fill" style="width:${d.economics.poverty_pct * 5}%"></div></div>
-    <div class="stat-row"><span class="stat-label">Residents in poverty</span><span class="stat-val">${fmt(d.economics.poverty_count)}</span></div>`;
+function renderVoting(year) {
+  const d = VOTE[year];
+  if (!d) return;
+  
+  let html = `<div class="year-selector">`;
+  Object.keys(VOTE).forEach(y => {
+    html += `<div class="year-btn${y==year?' active':''}" onclick="renderVoting('${y}')">${y} Election</div>`;
+  });
+  html += `</div>`;
 
-  // If we have more economic data in the future, it goes here
+  html += `<div class="card"><h2>🗳️ National Exit Polls — ${year}</h2>`;
+  html += `<div class="stat-row" style="margin-bottom:1rem"><span class="stat-label">National Popular Vote</span><span class="stat-val" style="color:var(--ac)">${d.popular}</span></div>`;
+  
+  html += `<table>
+    <thead><tr>
+      <th style="text-align:left">Race/Ethnicity</th>
+      <th>Electorate Share</th>
+      <th>Democratic</th>
+      <th>Republican</th>
+      <th>Other/3rd</th>
+    </tr></thead><tbody>`;
+
+  d.race_vote.forEach((r, i) => {
+    const cls = i % 2 === 0 ? ' highlight-row' : '';
+    html += `<tr class="${cls}">
+      <td class="race-col">${r.race}</td>
+      <td>${r.share}%</td>
+      <td class="dem">${r.dem}%</td>
+      <td class="gop">${r.gop}%</td>
+      <td class="other">${r.other}%</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  html += `<div style="margin-top:1rem;padding:.75rem;background:rgba(255,171,64,.06);border-radius:8px;font-size:.72rem;color:var(--mu)">
+    📋 <strong>Source:</strong> CNN / National Election Pool (NEP) exit polls, Edison Research. 
+    Margins of error: ±2-3 pts for White/Black groups, ±4-6 pts for Hispanic/Asian/Other groups due to smaller sample sizes.
+  </div>`;
+  html += `</div>`;
+
+  document.getElementById('votingTable').innerHTML = html;
 }
 
-function renderEducation(d) {
-  const total = d.education.bachelors_or_higher;
-  const pct25plus = (total / (d.population.total * 0.75) * 100).toFixed(1); // rough 25+ estimate
-  document.getElementById('educationCard').innerHTML = `
-    <h2><span class="icon">🎓</span> Education</h2>
-    <div class="stat-row"><span class="stat-label">Bachelor's or Higher</span><span class="stat-val">${fmt(total)}</span></div>
-    <div class="education-bar"><div class="education-fill" style="width:${Math.min(100, pct25plus)}%"></div></div>
-    <div class="stat-row"><span class="stat-label">Bachelor's Degree</span><span class="stat-val">${fmt(d.education.bachelors_only)}</span></div>
-    <div class="stat-row"><span class="stat-label">Master's Degree</span><span class="stat-val">${fmt(d.education.masters)}</span></div>
-    <div class="stat-row"><span class="stat-label">Professional Degree</span><span class="stat-val">${fmt(d.education.professional)}</span></div>
-    <div class="stat-row"><span class="stat-label">Doctorate</span><span class="stat-val">${fmt(d.education.doctorate)}</span></div>`;
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tabCensus').style.display = tab === 'census' ? '' : 'none';
+  document.getElementById('tabVoting').style.display = tab === 'voting' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach(t => {
+    if ((tab==='census' && t.textContent.includes('Census')) || 
+        (tab==='voting' && t.textContent.includes('Voting'))) t.classList.add('active');
+  });
+  if (tab === 'voting' && !document.getElementById('votingTable').innerHTML) renderVoting('2024');
 }
 
-loadData();
+// Boot
+renderCensus();
 </script>
 </body>
 </html>
