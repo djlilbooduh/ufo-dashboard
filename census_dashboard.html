@@ -60,12 +60,10 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
 
 <!-- CENSUS TAB -->
 <div id="tabCensus">
-  <!-- Population Overview -->
   <div class="grid" id="popCards"></div>
-  <!-- Race Chart -->
   <div class="race-section" id="raceSection"></div>
-  <!-- Economics + Education -->
   <div class="grid" style="grid-template-columns:1fr 1fr" id="detailGrid"></div>
+  <div id="sdVotingSection"></div>
 </div>
 
 <!-- VOTING TAB -->
@@ -132,6 +130,16 @@ const VOTE = {
   }
 };
 
+// ══════════════ SAN DIEGO COUNTY VOTING ══════════════
+const SD_VOTE = {
+  registered: {total:1920000, dem:39, gop:26, npp:28, other:7},
+  presidential: {
+    2024: {dem:"Harris", dem_pct:56.4, gop:"Trump", gop_pct:41.9, other_pct:1.7, turnout:78.5, total_votes:1504000},
+    2020: {dem:"Biden", dem_pct:60.2, gop:"Trump", gop_pct:37.5, other_pct:2.3, turnout:83.5, total_votes:1660000},
+    2016: {dem:"Clinton", dem_pct:56.3, gop:"Trump", gop_pct:36.1, other_pct:7.6, turnout:79.0, total_votes:1367000}
+  }
+};
+
 // ══════════════ RENDER ══════════════
 function fmt(n) { return n.toLocaleString(); }
 
@@ -195,6 +203,8 @@ function renderCensus() {
       <div class="stat-row"><span class="stat-label">Professional Degree</span><span class="stat-val">${fmt(SD.professional)}</span></div>
       <div class="stat-row"><span class="stat-label">Doctorate</span><span class="stat-val">${fmt(SD.doctorate)}</span></div>
     </div>`;
+  
+  renderAllSDVoting('2024');
 }
 
 function renderVoting(year) {
@@ -276,6 +286,72 @@ function renderVoting(year) {
   html += `</div></div>`;
 
   document.getElementById('votingTable').innerHTML = html;
+}
+
+function renderSDVoting(year) {
+  const d = SD_VOTE.presidential[year];
+  if (!d) return '';
+  
+  let h = `<div class="card" style="margin:1.5rem auto;max-width:1200px"><h2>🗳️ San Diego County Presidential Results</h2>`;
+  h += `<div style="display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem">`;
+  Object.keys(SD_VOTE.presidential).forEach(y => {
+    h += `<div class="year-btn${y==year?' active':''}" onclick="renderAllSDVoting('${y}')">${y}</div>`;
+  });
+  h += `</div>`;
+
+  // Result bars
+  const maxPct = Math.max(d.dem_pct, d.gop_pct);
+  h += `<div style="margin-bottom:.75rem">
+    <div class="stat-row"><span class="stat-label">${d.dem} (D)</span><span class="stat-val" style="color:var(--ac)">${d.dem_pct}%</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${d.dem_pct}%;background:var(--ac)"></div></div>
+    <div class="stat-row" style="margin-top:.5rem"><span class="stat-label">${d.gop} (R)</span><span class="stat-val" style="color:var(--sc)">${d.gop_pct}%</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${d.gop_pct}%;background:var(--sc)"></div></div>
+  </div>`;
+
+  // Stats row
+  h += `<div class="grid" style="grid-template-columns:repeat(3,1fr);margin:1rem 0;padding:0">
+    <div style="text-align:center;padding:.5rem">
+      <div class="big-label">Margin</div>
+      <div class="big-num" style="font-size:1.3rem;color:var(--ac)">D+${(d.dem_pct - d.gop_pct).toFixed(1)}</div>
+    </div>
+    <div style="text-align:center;padding:.5rem">
+      <div class="big-label">Total Votes</div>
+      <div class="big-num" style="font-size:1.3rem">${(d.total_votes/1e6).toFixed(2)}M</div>
+    </div>
+    <div style="text-align:center;padding:.5rem">
+      <div class="big-label">Voter Turnout</div>
+      <div class="big-num" style="font-size:1.3rem;color:var(--uc)">${d.turnout}%</div>
+    </div>
+  </div>
+
+  <div style="font-size:.72rem;color:var(--mu);margin-top:.5rem">
+    📋 <strong>Source:</strong> California Secretary of State, Statement of Vote. San Diego County results.
+    Turnout calculated as total votes cast / registered voters.
+  </div></div>`;
+
+  // Voter Registration
+  const reg = SD_VOTE.registered;
+  h += `<div class="card" style="margin:1rem auto;max-width:1200px"><h2>📋 San Diego County Voter Registration (2024)</h2>`;
+  h += `<div class="stat-row"><span class="stat-label">Total Registered Voters</span><span class="stat-val" style="color:var(--ac)">${fmt(reg.total)}</span></div>`;
+  
+  const regParties = [
+    {label:"Democratic", pct:reg.dem, color:"var(--ac)"},
+    {label:"No Party Preference", pct:reg.npp, color:"var(--mu)"},
+    {label:"Republican", pct:reg.gop, color:"var(--sc)"},
+    {label:"Other", pct:reg.other, color:"#8888aa"}
+  ];
+  regParties.forEach(p => {
+    h += `<div class="stat-row" style="margin-top:.4rem"><span class="stat-label">${p.label}</span><span class="stat-val" style="color:${p.color}">${p.pct}%</span></div>`;
+    h += `<div class="bar-bg"><div class="bar-fill" style="width:${p.pct}%;background:${p.color}"></div></div>`;
+  });
+  h += `<div style="font-size:.72rem;color:var(--mu);margin-top:.75rem">📋 <strong>Source:</strong> San Diego County Registrar of Voters, 2024 General Election registration report.</div>`;
+  h += `</div>`;
+
+  return h;
+}
+
+function renderAllSDVoting(year) {
+  document.getElementById('sdVotingSection').innerHTML = renderSDVoting(year);
 }
 
 function showTab(tab) {
