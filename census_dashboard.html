@@ -43,6 +43,16 @@ header .sub{color:var(--mu);font-size:.8rem}
 .year-selector{display:flex;justify-content:center;gap:.5rem;margin-bottom:1rem}
 .year-btn{background:var(--sf);border:1px solid var(--bd);color:var(--mu);padding:.35rem 1.2rem;border-radius:5px;font-size:.78rem;cursor:pointer;transition:all .15s}
 .year-btn:hover{color:var(--tx)} .year-btn.active{background:var(--ac);color:#000;border-color:var(--ac);font-weight:600}
+/* City search dropdown */
+.city-search{position:relative}
+.city-search input{width:100%;background:var(--sf);border:1px solid var(--bd);color:var(--tx);padding:.5rem 1rem;border-radius:6px;font-size:.82rem;outline:none}
+.city-search input:focus{border-color:var(--ac)}
+.city-search input::placeholder{color:var(--mu)}
+.city-dropdown{display:none;position:absolute;top:100%;left:0;right:0;max-height:260px;overflow-y:auto;background:#12121e;border:1px solid var(--bd);border-top:none;border-radius:0 0 8px 8px;z-index:100}
+.city-dropdown.show{display:block}
+.city-dropdown .item{padding:.45rem .9rem;font-size:.78rem;cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.city-dropdown .item:hover,.city-dropdown .item.active{background:rgba(79,195,247,.12);color:var(--ac)}
+.city-dropdown .no-results,.city-dropdown .loading{padding:.5rem .9rem;font-size:.75rem;color:var(--mu);text-align:center}
 footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top:1px solid var(--bd);margin-top:2rem}
 @media(max-width:768px){.race-bar-row{flex-wrap:wrap}.race-label{width:100%;text-align:left;margin-bottom:.1rem}}
 </style>
@@ -55,6 +65,11 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
   <div class="tabs">
     <div class="tab active" onclick="showTab('census')">🏙️ Census Demographics</div>
     <div class="tab" onclick="showTab('voting')">🗳️ Voting by Race (National)</div>
+  </div>
+  <div class="city-search" style="max-width:500px;margin:1rem auto 0;position:relative">
+    <input type="text" id="citySearch" placeholder="🔍 Search 467 CA cities…" autocomplete="off"
+           onfocus="showCityDropdown()" oninput="filterCityDropdown()" onkeydown="handleCityKey(event)">
+    <div class="city-dropdown" id="cityDropdown"></div>
   </div>
 </header>
 
@@ -75,9 +90,19 @@ footer{text-align:center;color:var(--mu);padding:2rem;font-size:.7rem;border-top
 
 <script>
 // ══════════════ SAN DIEGO CENSUS DATA (embedded) ══════════════
+const DATA_URL = 'census_data.json';
+let allCities = null;
+let allCityKeys = [];
+let activeIdx = -1;
+let currentCity = 'San Diego city, California';
+let currentData = null;
+
+// ══════════════ SAN DIEGO CENSUS DATA (default) ══════════════
 const SD = {
-  total: 1385061, voting_age: 1125769, income: 104321, poverty: 29040, poverty_pct: 2.1,
-  bachelors: 281352, masters: 132824, professional: 35379, doctorate: 37554,
+  state:"CA", year:"2023",
+  population: {total:1385061, voting_age:1125769, voting_age_pct:81.3},
+  economics: {median_household_income:104321, poverty_count:29040, poverty_pct:2.1},
+  education: {bachelors_or_higher:487109, bachelors_only:281352, masters:132824, professional:35379, doctorate:37554},
   race: [
     {group:"White (non-Hispanic)", count:573281, pct:41.4, color:"#4fc3f7"},
     {group:"Hispanic/Latino", count:409493, pct:29.6, color:"#ffab40"},
@@ -144,32 +169,33 @@ const SD_VOTE = {
 function fmt(n) { return n.toLocaleString(); }
 
 function renderCensus() {
+  const d = currentData || SD;
   // Population cards
   document.getElementById('popCards').innerHTML = `
     <div class="card" style="text-align:center">
       <div class="big-label">Total Population</div>
-      <div class="big-num">${fmt(SD.total)}</div>
-      <div class="stat-sub">San Diego, CA · ACS 2023</div>
+      <div class="big-num">${fmt(d.population.total)}</div>
+      <div class="stat-sub">${cleanCityName(currentCity)} · ACS ${d.year}</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Voting Age (18+)</div>
-      <div class="big-num">${fmt(SD.voting_age)}</div>
-      <div class="stat-sub">${(100*SD.voting_age/SD.total).toFixed(1)}% of population</div>
+      <div class="big-num">${fmt(d.population.voting_age)}</div>
+      <div class="stat-sub">${d.population.voting_age_pct}% of population</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Median Household Income</div>
-      <div class="big-num">$${fmt(SD.income)}</div>
-      <div class="stat-sub">2023 inflation-adjusted dollars</div>
+      <div class="big-num">$${fmt(d.economics.median_household_income)}</div>
+      <div class="stat-sub">${d.year} inflation-adjusted dollars</div>
     </div>
     <div class="card" style="text-align:center">
       <div class="big-label">Poverty Rate</div>
-      <div class="big-num" style="color:var(--cf)">${SD.poverty_pct}%</div>
-      <div class="stat-sub">${fmt(SD.poverty)} residents below poverty line</div>
+      <div class="big-num" style="color:var(--cf)">${d.economics.poverty_pct}%</div>
+      <div class="stat-sub">${fmt(d.economics.poverty_count)} residents below poverty line</div>
     </div>`;
 
   // Race bars
-  let raceHtml = '<div class="card"><h2>🧑 Race & Ethnicity — San Diego</h2>';
-  SD.race.forEach(r => {
+  let raceHtml = '<div class="card"><h2>🧑 Race & Ethnicity — ' + cleanCityName(currentCity) + '</h2>';
+  d.race.forEach(r => {
     raceHtml += `
     <div class="race-bar-row">
       <div class="race-label">${r.group}</div>
@@ -184,24 +210,24 @@ function renderCensus() {
   document.getElementById('raceSection').innerHTML = raceHtml;
 
   // Economics + Education
-  const eduTotal = SD.bachelors + SD.masters + SD.professional + SD.doctorate;
-  const eduPct = (eduTotal / (SD.total * 0.75) * 100).toFixed(1);
+  const eduTotal = d.education.bachelors_or_higher;
+  const eduPct = (eduTotal / (d.population.total * 0.75) * 100).toFixed(1);
   document.getElementById('detailGrid').innerHTML = `
     <div class="card">
       <h2>💰 Economics</h2>
-      <div class="stat-row"><span class="stat-label">Median Household Income</span><span class="stat-val" style="color:var(--ac)">$${fmt(SD.income)}</span></div>
-      <div class="stat-row" style="margin-top:.75rem"><span class="stat-label">Below Poverty Line</span><span class="stat-val" style="color:var(--cf)">${SD.poverty_pct}%</span></div>
-      <div class="bar-bg"><div class="bar-fill" style="width:${SD.poverty_pct*5}%;background:var(--cf)"></div></div>
-      <div class="stat-row"><span class="stat-label">Residents in poverty</span><span class="stat-val">${fmt(SD.poverty)}</span></div>
+      <div class="stat-row"><span class="stat-label">Median Household Income</span><span class="stat-val" style="color:var(--ac)">$${fmt(d.economics.median_household_income)}</span></div>
+      <div class="stat-row" style="margin-top:.75rem"><span class="stat-label">Below Poverty Line</span><span class="stat-val" style="color:var(--cf)">${d.economics.poverty_pct}%</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${d.economics.poverty_pct*5}%;background:var(--cf)"></div></div>
+      <div class="stat-row"><span class="stat-label">Residents in poverty</span><span class="stat-val">${fmt(d.economics.poverty_count)}</span></div>
     </div>
     <div class="card">
       <h2>🎓 Education (Age 25+)</h2>
       <div class="stat-row"><span class="stat-label">Bachelor's or Higher</span><span class="stat-val" style="color:var(--ac)">${fmt(eduTotal)}</span></div>
       <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,eduPct)}%;background:var(--ac)"></div></div>
-      <div class="stat-row"><span class="stat-label">Bachelor's Degree</span><span class="stat-val">${fmt(SD.bachelors)}</span></div>
-      <div class="stat-row"><span class="stat-label">Master's Degree</span><span class="stat-val">${fmt(SD.masters)}</span></div>
-      <div class="stat-row"><span class="stat-label">Professional Degree</span><span class="stat-val">${fmt(SD.professional)}</span></div>
-      <div class="stat-row"><span class="stat-label">Doctorate</span><span class="stat-val">${fmt(SD.doctorate)}</span></div>
+      <div class="stat-row"><span class="stat-label">Bachelor's Degree</span><span class="stat-val">${fmt(d.education.bachelors_only)}</span></div>
+      <div class="stat-row"><span class="stat-label">Master's Degree</span><span class="stat-val">${fmt(d.education.masters)}</span></div>
+      <div class="stat-row"><span class="stat-label">Professional Degree</span><span class="stat-val">${fmt(d.education.professional)}</span></div>
+      <div class="stat-row"><span class="stat-label">Doctorate</span><span class="stat-val">${fmt(d.education.doctorate)}</span></div>
     </div>`;
   
   renderAllSDVoting('2024');
@@ -354,6 +380,75 @@ function renderAllSDVoting(year) {
   document.getElementById('sdVotingSection').innerHTML = renderSDVoting(year);
 }
 
+// ── CITY SEARCH & LOADING ──
+function cleanCityName(key) {
+  return key.replace(/ (city|town), California$/, ', CA');
+}
+
+function filterCityDropdown() {
+  const q = document.getElementById('citySearch').value.toLowerCase();
+  const dd = document.getElementById('cityDropdown');
+  if (!allCityKeys.length) {
+    dd.innerHTML = '<div class="loading">Loading 467 cities…</div>';
+    dd.classList.add('show');
+    return;
+  }
+  const matches = allCityKeys.filter(k => cleanCityName(k).toLowerCase().includes(q));
+  if (!matches.length) {
+    dd.innerHTML = '<div class="no-results">No cities match</div>';
+  } else {
+    dd.innerHTML = matches.map((k, i) =>
+      `<div class="item${i===activeIdx?' active':''}" data-key="${k.replace(/"/g,'&quot;')}">📍 ${cleanCityName(k)}</div>`
+    ).join('');
+  }
+  dd.classList.add('show');
+}
+
+function showCityDropdown() { filterCityDropdown(); }
+
+function handleCityKey(e) {
+  const items = document.querySelectorAll('#cityDropdown .item');
+  if (e.key === 'ArrowDown') { activeIdx = Math.min(activeIdx+1, items.length-1); filterCityDropdown(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { activeIdx = Math.max(activeIdx-1, 0); filterCityDropdown(); e.preventDefault(); }
+  else if (e.key === 'Enter') { if (activeIdx>=0 && items[activeIdx]) selectCity(items[activeIdx].dataset.key); e.preventDefault(); }
+  else if (e.key === 'Escape') { document.getElementById('cityDropdown').classList.remove('show'); }
+}
+
+function selectCity(key) {
+  if (!key) return;
+  currentCity = key;
+  currentData = (allCities && allCities[key]) ? allCities[key] : SD;
+  document.getElementById('citySearch').value = cleanCityName(key);
+  document.getElementById('cityDropdown').classList.remove('show');
+  renderCensus();
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.city-search')) document.getElementById('cityDropdown').classList.remove('show');
+});
+
+// Add dropdown click delegation
+document.getElementById('cityDropdown').addEventListener('mousedown', function(e) {
+  const el = e.target.closest('.item');
+  if (el && el.dataset.key) selectCity(el.dataset.key);
+});
+
+async function loadAllCities() {
+  try {
+    const r = await fetch(DATA_URL + '?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (!data.cities) throw new Error('Missing cities');
+    allCities = data.cities;
+    allCityKeys = Object.keys(allCities).sort((a,b) => cleanCityName(a).localeCompare(cleanCityName(b)));
+    currentData = allCities['San Diego city, California'] || SD;
+    document.getElementById('citySearch').placeholder = '🔍 Search ' + allCityKeys.length + ' CA cities…';
+  } catch(e) {
+    console.log('City data deferred, using embedded data:', e.message);
+    allCityKeys = [];
+  }
+}
+
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tabCensus').style.display = tab === 'census' ? '' : 'none';
@@ -366,7 +461,9 @@ function showTab(tab) {
 }
 
 // Boot
+currentData = SD;
 renderCensus();
+loadAllCities();
 </script>
 </body>
 </html>
