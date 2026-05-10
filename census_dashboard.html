@@ -607,10 +607,11 @@ function renderCrime() {
   if (!container) return;
 
   if (!arrestData) {
-    container.innerHTML = '<div class="card" style="max-width:800px;margin:2rem auto;text-align:center"><p style="color:var(--mu)">Loading crime data…</p></div>';
+    container.innerHTML = '<div class="card" style="max-width:800px;margin:2rem auto;text-align:center;padding:3rem"><p style="color:var(--ac);font-size:1.5rem">⏳</p><p style="color:var(--mu);margin-top:1rem">Loading FBI arrest data for 450 California cities…</p><p style="color:var(--mu);font-size:.7rem;margin-top:.5rem">713 KB data file — may take a moment</p></div>';
     return;
   }
 
+  try {
   var arrest = arrestData[currentCity];
   var d = currentData || SD;
 
@@ -1052,4 +1053,3 @@ loadCountyData();
 </script>
 </body>
 </html>
-
