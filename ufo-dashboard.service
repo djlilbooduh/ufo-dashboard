@@ -1,0 +1,14 @@
+[Unit]
+Description=PURSUE UFO Dashboard Server
+After=network.target
+
+[Service]
+Type=simple
+User=lilbooduh
+WorkingDirectory=/home/lilbooduh/ufo-dashboard
+ExecStart=/usr/bin/python3 /home/lilbooduh/ufo-dashboard/server.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

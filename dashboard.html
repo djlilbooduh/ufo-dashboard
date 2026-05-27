@@ -5021,40 +5021,19 @@ async function checkForUpdates() {
   status.textContent = '⏳ Checking war.gov...';
   
   try {
-    const resp = await fetch('https://www.war.gov/UFO/', { 
-      signal: AbortSignal.timeout(15000),
-      headers: { 'Accept': 'text/html' }
-    });
-    const text = await resp.text();
+    const resp = await fetch('/api/check-updates');
+    const data = await resp.json();
     
-    // Look for release dates
-    const releases = [];
-    const matches = text.matchAll(/[Rr]eleases*(d+)/g);
-    for (const m of matches) {
-      if (!releases.includes(m[1])) releases.push(m[1]);
-    }
-    
-    // Look for dates in format MM DD YY or Month DD, YYYY
-    const dates = [];
-    const datePatterns = [
-      /(d{2}s+d{2}s+d{2})/g,
-      /(January|February|March|April|May|June|July|August|September|October|November|December)s+d{1,2},s+d{4}/g
-    ];
-    for (const pat of datePatterns) {
-      for (const m of text.matchAll(pat)) {
-        dates.push(m[0]);
+    if (data.ok) {
+      if (data.hasUpdate) {
+        status.innerHTML = '🆕 <b style="color:#ffd700">Release ' + data.latestRelease + ' available!</b> <a href="https://www.war.gov/UFO/" target="_blank" style="color:var(--ac)">View on war.gov →</a>';
+      } else if (data.latestRelease === 2) {
+        status.innerHTML = '✅ <span style="color:var(--uc)">Up to date — Release 02 is latest (' + (data.dates.slice(-1)[0] || 'May 22, 2026') + ')</span>';
+      } else {
+        status.innerHTML = '⚠️ Could not determine latest release. <a href="https://www.war.gov/UFO/" target="_blank" style="color:var(--ac)">Check manually →</a>';
       }
-    }
-    
-    const latestRelease = releases.length > 0 ? Math.max(...releases.map(Number)) : null;
-    const knownReleases = [1, 2]; // We have Release 01 and 02
-    
-    if (latestRelease && latestRelease > 2) {
-      status.innerHTML = '🆕 <b style="color:#ffd700">Release ' + latestRelease + ' available!</b> <a href="https://www.war.gov/UFO/" target="_blank" style="color:var(--ac)">View on war.gov →</a>';
-    } else if (latestRelease === 2) {
-      status.innerHTML = '✅ <span style="color:var(--uc)">Up to date — Release 02 is latest</span>';
     } else {
-      status.innerHTML = '⚠️ Could not determine latest release. <a href="https://www.war.gov/UFO/" target="_blank" style="color:var(--ac)">Check manually →</a>';
+      status.textContent = '❌ Check failed: ' + (data.error || 'unknown');
     }
   } catch(e) {
     status.textContent = '❌ Connection failed — try again or visit war.gov/UFO directly';
