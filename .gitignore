@@ -1,0 +1,7 @@
+node_modules/
+*.zip
+__MACOSX/
+r1_pdfs/
+r2_pdfs/
+r1_text/
+r2_text/
