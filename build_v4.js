@@ -377,6 +377,14 @@ header .links a:hover{background:rgba(79,195,247,.1);border-color:var(--ac)}
 
 .check-status{color:var(--mu);font-size:.7rem}
 
+/* Pagination */
+.pgn{display:flex;justify-content:center;align-items:center;gap:.3rem;padding:.75rem 1.5rem;max-width:1200px;margin:0 auto}
+.pgn button{background:var(--sf);border:1px solid var(--bd);color:var(--tx);padding:.4rem .75rem;border-radius:4px;font-size:.7rem;cursor:pointer;font-family:inherit;transition:all .15s}
+.pgn button:hover:not(:disabled){border-color:var(--ac);color:var(--ac)}
+.pgn button:disabled{opacity:.3;cursor:default}
+.pgn button.active{background:rgba(79,195,247,.15);border-color:var(--ac);color:var(--ac)}
+.pgn .pgn-info{color:var(--mu);font-size:.65rem;margin:0 .5rem}
+
 footer{text-align:center;color:var(--mu);padding:1.5rem;font-size:.7rem;border-top:1px solid var(--bd)}
 footer a{color:var(--ac)}
 
@@ -427,16 +435,16 @@ footer a{color:var(--ac)}
   <span class="result-count" id="resultCount">${allData.length} files</span>
 </div>
 
-<div class="fl-section active" id="sec-fl-all"><div class="fl">${buildFileCards(allData)}</div></div>
-<div class="fl-section" id="sec-fl-r1"><div class="fl">${buildFileCards(allR1)}</div></div>
-<div class="fl-section" id="sec-fl-r2"><div class="fl">${buildFileCards(r2Entries)}</div></div>
+<div class="fl-section active" id="sec-fl-all"><div class="pgn pgn-top" id="pgn-top-all"></div><div class="fl">${buildFileCards(allData)}</div><div class="pgn pgn-bot" id="pgn-bot-all"></div></div>
+<div class="fl-section" id="sec-fl-r1"><div class="pgn pgn-top" id="pgn-top-r1"></div><div class="fl">${buildFileCards(allR1)}</div><div class="pgn pgn-bot" id="pgn-bot-r1"></div></div>
+<div class="fl-section" id="sec-fl-r2"><div class="pgn pgn-top" id="pgn-top-r2"></div><div class="fl">${buildFileCards(r2Entries)}</div><div class="pgn pgn-bot" id="pgn-bot-r2"></div></div>
 
 <footer>
   Built by Ky · OpenClaw · Raspberry Pi 5 · ${new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'})} PT · <a href="https://www.war.gov/UFO/" target="_blank" rel="noopener">war.gov/UFO</a>
 </footer>
 
 <script>
-let currentTab = 'all';
+let currentTab = 'all', currentPage = 1, cardsPerPage = 25;
 
 (function initTab() {
   const hash = window.location.hash.replace('#', '');
@@ -448,7 +456,7 @@ window.addEventListener('hashchange', () => {
 });
 
 function switchTab(tab) {
-  currentTab = tab;
+  currentTab = tab; currentPage = 1;
   window.location.hash = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => {
@@ -469,26 +477,19 @@ function switchTab(tab) {
   doFilter();
 }
 
-// ── Collapsible card logic ──
+// ── Collapsible cards ──
 function toggleCard(card) {
   const body = card.querySelector('.fc-body');
   if (!body) return;
-  if (body.style.display === 'none') {
-    body.style.display = 'block';
-    card.classList.add('expanded');
-  } else {
-    body.style.display = 'none';
-    card.classList.remove('expanded');
-  }
+  if (body.style.display === 'none') { body.style.display = 'block'; card.classList.add('expanded'); }
+  else { body.style.display = 'none'; card.classList.remove('expanded'); }
 }
-
 function expandAll() {
   const container = document.getElementById('sec-fl-' + currentTab);
   if (!container) return;
   container.querySelectorAll('.fc-body').forEach(b => b.style.display = 'block');
   container.querySelectorAll('.fc').forEach(c => c.classList.add('expanded'));
 }
-
 function collapseAll() {
   const container = document.getElementById('sec-fl-' + currentTab);
   if (!container) return;
@@ -496,23 +497,54 @@ function collapseAll() {
   container.querySelectorAll('.fc').forEach(c => c.classList.remove('expanded'));
 }
 
-function doFilter() {
+// ── Pagination ──
+function renderPagination(totalFiltered) {
+  const totalPages = Math.ceil(totalFiltered / cardsPerPage) || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+  const build = (id) => {
+    const el = document.getElementById(id); if (!el) return;
+    let h = '';
+    h += '<button onclick="goPage(' + (currentPage-1) + ')" ' + (currentPage<=1?'disabled':'') + '>◀ Prev</button>';
+    for (let i=1; i<=totalPages; i++) {
+      if (totalPages<=7 || i===1 || i===totalPages || Math.abs(i-currentPage)<=1) {
+        h += '<button onclick="goPage('+i+')" ' + (i===currentPage?'class="active"':'') + '>'+i+'</button>';
+      } else if (i===2 || i===totalPages-1) {
+        h += '<span style="color:var(--mu);font-size:.7rem">…</span>';
+      }
+    }
+    h += '<button onclick="goPage(' + (currentPage+1) + ')" ' + (currentPage>=totalPages?'disabled':'') + '>Next ▶</button>';
+    h += '<span class="pgn-info">Page '+currentPage+' of '+totalPages+' · '+totalFiltered+' files</span>';
+    el.innerHTML = h;
+  };
+  ['pgn-top-'+currentTab, 'pgn-bot-'+currentTab].forEach(build);
+}
+
+function goPage(p) { currentPage = p; doFilter(true); }
+
+function doFilter(skipPageReset) {
+  if (!skipPageReset) currentPage = 1;
   const q = (document.getElementById('q').value || '').toLowerCase();
-  const a = document.getElementById('af').value;
-  const t = document.getElementById('tf').value;
-  const c = document.getElementById('cf').value;
-  let count = 0;
+  const a = document.getElementById('af').value, t = document.getElementById('tf').value, c = document.getElementById('cf').value;
   const container = document.getElementById('sec-fl-' + currentTab);
   if (!container) return;
+  
+  // First pass: tag all matching cards
+  const matches = [];
   container.querySelectorAll('.fc').forEach(card => {
     if (currentTab !== 'all' && card.dataset.r !== (currentTab === 'r1' ? '01' : '02')) {
       card.style.display = 'none'; return;
     }
     const match = (!q || card.dataset.q.includes(q)) && (!a || card.dataset.a === a) && (!t || card.dataset.t === t) && (!c || card.dataset.c === c);
-    card.style.display = match ? '' : 'none';
-    if (match) count++;
+    if (match) matches.push(card);
+    card.style.display = 'none'; // Hide all initially
   });
-  document.getElementById('resultCount').textContent = count + ' files';
+  
+  // Show only current page
+  const start = (currentPage - 1) * cardsPerPage;
+  const pageCards = matches.slice(start, start + cardsPerPage);
+  pageCards.forEach(card => card.style.display = '');
+  
+  renderPagination(matches.length);
 }
 
 async function checkForUpdates() {
