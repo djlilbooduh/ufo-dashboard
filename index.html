@@ -10539,8 +10539,25 @@ The crew describe bright “particles” or “fragments” as being “jagged,�
 <script>
 let currentTab = 'all';
 
+// Restore tab from URL hash on load/refresh
+(function initTab() {
+  const hash = window.location.hash.replace('#', '');
+  if (hash === 'r1' || hash === 'r2' || hash === 'all') {
+    switchTab(hash);
+  }
+})();
+
+// Handle back/forward browser navigation
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#', '');
+  if ((hash === 'r1' || hash === 'r2' || hash === 'all') && hash !== currentTab) {
+    switchTab(hash);
+  }
+});
+
 function switchTab(tab) {
   currentTab = tab;
+  window.location.hash = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => {
     if ((tab==='all' && b.textContent.includes('All')) ||
