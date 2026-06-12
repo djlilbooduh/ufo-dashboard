@@ -1,8 +1,6 @@
 {
-  "last_check": "2026-06-12 13:29 PT",
-  "releases_known": [
-    "release-01"
-  ],
-  "status": "Monitoring \u2014 Release 01 active",
+  "last_check": "2026-06-12 15:55 PT",
+  "releases_known": ["release-01", "release-02", "release-03"],
+  "status": "Monitoring — Release 03 active",
   "new_release": false
 }

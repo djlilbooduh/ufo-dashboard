@@ -6,7 +6,7 @@ import json
 import re
 import os
 
-PORT = 8105
+PORT = 8106
 DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Handler(http.server.SimpleHTTPRequestHandler):
