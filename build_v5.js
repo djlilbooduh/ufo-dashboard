@@ -319,13 +319,9 @@ function buildFileCards(data) {
   return sorted.map(d => {
     const tagClass = badgeClass(d.classification);
     const summary = d.summary || '';
-    const hasKf = d.keyFacts && d.keyFacts.length > 0;
-    const isR2 = d.release === '02';
-    const isR3 = d.release === '03';
     const vidBadge = d.isVideo ? '<span class="b vid-badge">🎬 VIDEO</span>' : '';
     const audBadge = d.isAudio ? '<span class="b aud-badge">🔊 AUDIO</span>' : '';
     const imgBadge = d.isImage ? '<span class="b img-badge">🖼 IMAGE</span>' : '';
-    const relBadge = isR2 ? '<span class="b r2-badge">R2</span>' : isR3 ? '<span class="b r3-badge">R3</span>' : '';
     const typeLabel = d.isVideo ? 'Video' : d.isAudio ? 'Audio' : d.isImage ? 'Image' : 'PDF';
     
     let mediaLink = '';
@@ -333,7 +329,6 @@ function buildFileCards(data) {
     else if (d.isAudio && d.dvidsId) mediaLink = `<a class="orig-link" href="https://www.dvidshub.net/video/${d.dvidsId}" target="_blank" rel="noopener">🔊 DVIDS →</a>`;
     else if (d.pdfUrl) mediaLink = `<a class="orig-link" href="${esc(d.pdfUrl)}" target="_blank" rel="noopener">📎 PDF →</a>`;
     
-    const kfHTML = hasKf ? d.keyFacts.map(f => `<span class="kf-tag">${esc(f)}</span>`).join('') : '';
     const locInfo = d.location ? `📍 ${esc(d.location)}` : '';
     const dateInfo = d.date ? `📅 ${esc(d.date)}` : '';
     const pagesInfo = d.pages ? `${d.pages}p` : '';
@@ -341,16 +336,14 @@ function buildFileCards(data) {
     const previewText = d.preview || summary.substring(0, 200);
     const hasMore = summary.length > previewText.length + 20;
     
-    const highlightClass = isR2 ? ' r2-highlight' : isR3 ? ' r3-highlight' : '';
-    
-    return `<div class="fc${highlightClass}" data-q="${esc((d.title+' '+d.agency+' '+summary+' '+(d.keyFacts||[]).join(' ')+(d.location||'')).toLowerCase())}" data-a="${esc(d.agency)}" data-t="${esc(typeLabel)}" data-c="${esc(d.classification)}" data-r="${d.release}">
+    return `<div class="fc" data-q="${esc((d.title+' '+d.agency+' '+summary+' '+(d.keyFacts||[]).join(' ')+(d.location||'')).toLowerCase())}" data-a="${esc(d.agency)}" data-t="${esc(typeLabel)}" data-c="${esc(d.classification)}" data-r="${d.release}">
       <div class="fc-header" onclick="toggleCard(this.parentElement)" title="Click to expand/collapse">
         <span class="fc-title">${esc(d.title)}</span>
         <span class="fc-meta">
           <span class="b ${tagClass}">${esc(d.classification)}</span>
           <span class="b ba">${esc(d.agency)}</span>
           <span class="b bt">${typeLabel}</span>
-          ${vidBadge}${audBadge}${imgBadge}${relBadge}
+          ${vidBadge}${audBadge}${imgBadge}
           ${pagesInfo ? `<span class="fc-pg">${pagesInfo}</span>` : ''}
           ${dateInfo ? `<span class="fc-dt">${esc(d.date)}</span>` : ''}
           ${locInfo ? `<span class="fc-lc">${esc(d.location)}</span>` : ''}
@@ -360,80 +353,13 @@ function buildFileCards(data) {
       <div class="fc-preview">${esc(previewText)}${hasMore ? ' <span class="fc-more">[… click to expand]</span>' : ''}</div>
       <div class="fc-body" style="display:none">
         <div class="fc-fulltext">${esc(summary)}</div>
-        ${kfHTML ? `<div class="fc-facts">${kfHTML}</div>` : ''}
         <div class="fc-footer">${mediaLink}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── R3 highlight facts section ──
-function buildR3FactsSection() {
-  const pdfEntries = r3Entries.filter(e => e.type === 'PDF' && e.keyFacts.length > 0);
-  const allFacts = [];
-  pdfEntries.forEach(d => d.keyFacts.forEach(f => allFacts.push({fact:f, file:d.title.split(',')[0], agency:d.agency})));
 
-  // Add notable non-summarized highlights
-  const extras = [
-    {fact:'CIA-UAP-003: Complete history of U-2 and OXCART (A-12) reconnaissance programs 1954-1974', file:'CIA-UAP-003', agency:'CIA'},
-    {fact:'CIA-UAP-006: 1955 eyewitness account of triangular aircraft near Baku, Azerbaijan', file:'CIA-UAP-006', agency:'CIA'},
-    {fact:'CIA-UAP-008: Soviet scientists Kardashev & Sakharov paper on "charged mass in space," 1972', file:'CIA-UAP-008', agency:'CIA'},
-    {fact:'CIA-UAP-016: 7 UFO sightings in Ladakh, Nepal, Sikkim, and Bhutan — Feb-Mar 1968', file:'CIA-UAP-016', agency:'CIA'},
-    {fact:'FBI-UAP-D012: Newark Field Office special UFO inquiry spanning 1952-1967', file:'FBI-UAP-D012', agency:'FBI'},
-    {fact:'FBI-UAP-D013: Washington State UFO investigation, July 1952-August 1960', file:'FBI-UAP-D013', agency:'FBI'},
-    {fact:'DOW-UAP-D087/D088: USAF Analysis of Flying Objects — 172 incident checklists', file:'DOW-UAP-D087/088', agency:'Department of War'},
-    {fact:'NASA-UAP-D016-D022: Gemini 4, 5, 7, 9 crew debriefing transcripts', file:'NASA-UAP-D016-022', agency:'NASA'},
-    {fact:'NASA-UAP-D023: Gordon Cooper interviewed by Walter Cronkite on UFOs, 1962', file:'NASA-UAP-D023', agency:'NASA'},
-    {fact:'NASA-UAP-D025: Apollo 16 debriefing — "Could be an alien starbase or something"', file:'NASA-UAP-D025', agency:'NASA'},
-    {fact:'Western US Event: 5 witnesses + 10 FBI renderings + 2 digital recreation videos', file:'DOW-UAP-D077-083', agency:'FBI/DoW'},
-    {fact:'6 FBI witness videos: orb sightings northeast US 2021-2025', file:'FBI-UAP-PR001-006', agency:'FBI'},
-  ];
-  extras.forEach(f => allFacts.push(f));
-  
-  return `
-  <div class="facts-section" id="facts-r3">
-    <div class="facts-header">
-      <h2>🔍 Release 03 — Complete Breakdown</h2>
-      <div class="facts-sub">72 total files: 53 documents + 6 videos + 10 images + 3 audio excerpts · June 12, 2026</div>
-    </div>
-    <div class="facts-grid">${allFacts.map(f => `
-    <div class="fact-card">
-      <div class="fact-badge">${esc(f.agency)}</div>
-      <div class="fact-text">${esc(f.fact)}</div>
-      <div class="fact-file">${esc(f.file)}</div>
-    </div>`).join('')}</div>
-  </div>`;
-}
-
-// ── R2 highlight facts section ──
-function buildR2FactsSection() {
-  const pdfEntries = r2Entries.filter(e => e.type === 'PDF' && e.keyFacts.length > 0);
-  const allFacts = [];
-  pdfEntries.forEach(d => d.keyFacts.forEach(f => allFacts.push({fact:f, file:d.title.split(',')[0], agency:d.agency})));
-  const extras = [
-    {fact:'51 military sensor videos — FLIR, radar, NVG footage worldwide', file:'Release 02 Videos', agency:'Department of War'},
-    {fact:'7 NASA mission audio excerpts — Apollo & Mercury astronauts describing anomalous lights', file:'Release 02 Audio', agency:'NASA'},
-    {fact:'Persian Gulf, East China Sea, Afghanistan, CENTCOM, EUCOM — 2017-2024', file:'Release 02 Videos', agency:'Department of War'},
-    {fact:'F/A-18 FLIR gun camera footage of UAP', file:'DOW-UAP-PR069', agency:'Department of War'},
-    {fact:'USAF F-16C shoots down UAP — kinetic engagement footage', file:'DOW-UAP-PR071', agency:'Department of War'},
-    {fact:'USCG C-144 TIC TAC — Coast Guard IR, 2 videos, April 2024', file:'DOW-UAP-PR065/066', agency:'Department of War'},
-  ];
-  extras.forEach(f => allFacts.push(f));
-  
-  return `
-  <div class="facts-section" id="facts-r2">
-    <div class="facts-header">
-      <h2>🔍 Release 02 — Complete Breakdown</h2>
-      <div class="facts-sub">64 total files: 6 declassified documents + 51 military sensor videos + 7 NASA audio excerpts · May 22, 2026</div>
-    </div>
-    <div class="facts-grid">${allFacts.map(f => `
-    <div class="fact-card">
-      <div class="fact-badge">${esc(f.agency)}</div>
-      <div class="fact-text">${esc(f.fact)}</div>
-      <div class="fact-file">${esc(f.file)}</div>
-    </div>`).join('')}</div>
-  </div>`;
-}
 
 function uniqueVals(data, key) {
   const vals = {};
@@ -456,6 +382,9 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>🛸 PURSUE — UAP Files Dashboard v5</title>
 <style>
 :root{--bg:#0a0a10;--sf:#141420;--bd:#1e1e3a;--tx:#e0e0f0;--mu:#8888aa;--ac:#4fc3f7;--sc:#ff5252;--cf:#ffab40;--uc:#66bb6a;--r2:#ffd700;--r3:#00e5ff}
@@ -479,16 +408,6 @@ header .links a:hover{background:rgba(79,195,247,.1);border-color:var(--ac)}
 .tab-btn .badge.r3-badge{background:var(--r3)}
 
 /* Facts section */
-.facts-section{max-width:1200px;margin:1.25rem auto;padding:0 1.5rem}
-.facts-header{text-align:center;margin-bottom:1.25rem}
-.facts-header h2{font-size:1.35rem;color:var(--ac);margin-bottom:.2rem}
-.facts-sub{color:var(--mu);font-size:.8rem}
-.facts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.6rem}
-.fact-card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:1rem;transition:border-color .2s,transform .2s}
-.fact-card:hover{border-color:var(--r2);transform:translateY(-1px)}
-.fact-badge{display:inline-block;background:rgba(255,215,0,.15);color:var(--r2);font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:3px;margin-bottom:.4rem}
-.fact-text{color:var(--tx);font-size:.8rem;line-height:1.5}
-.fact-file{color:var(--mu);font-size:.6rem;margin-top:.35rem}
 
 /* Stats */
 .st-section{display:none}
@@ -519,10 +438,7 @@ header .links a:hover{background:rgba(79,195,247,.1);border-color:var(--ac)}
 
 .fc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:0;margin-bottom:.5rem;transition:border-color .15s;overflow:hidden}
 .fc:hover{border-color:var(--ac)}
-.fc.r2-highlight{border-color:rgba(255,215,0,.12)}
-.fc.r2-highlight:hover{border-color:var(--r2)}
-.fc.r3-highlight{border-color:rgba(0,229,255,.12)}
-.fc.r3-highlight:hover{border-color:var(--r3)}
+
 .fc.expanded{border-color:var(--ac);box-shadow:0 0 12px rgba(79,195,247,.06)}
 
 .fc-header{cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;gap:.5rem;user-select:none;transition:background .15s}
@@ -540,7 +456,6 @@ header .links a:hover{background:rgba(79,195,247,.1);border-color:var(--ac)}
 
 .fc-body{padding:0 1rem .8rem;border-top:1px solid rgba(255,255,255,.04)}
 .fc-fulltext{color:var(--tx);font-size:.82rem;line-height:1.65;white-space:pre-line;padding-top:.6rem}
-.fc-facts{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.5rem}
 .fc-footer{margin-top:.5rem;padding-top:.4rem;border-top:1px solid rgba(255,255,255,.03);display:flex;gap:.5rem;flex-wrap:wrap}
 
 .b{padding:.15rem .45rem;border-radius:3px;font-weight:600;text-transform:uppercase;font-size:.6rem;letter-spacing:.5px;white-space:nowrap}
@@ -552,10 +467,7 @@ header .links a:hover{background:rgba(79,195,247,.1);border-color:var(--ac)}
 .vid-badge{background:rgba(255,100,100,.1);color:#ff6b6b;border:1px solid rgba(255,100,100,.18)}
 .aud-badge{background:rgba(100,200,255,.1);color:#64b5f6;border:1px solid rgba(100,200,255,.18)}
 .img-badge{background:rgba(200,150,255,.1);color:#b388ff;border:1px solid rgba(200,150,255,.18)}
-.r2-badge{background:rgba(255,215,0,.12);color:var(--r2);border:1px solid rgba(255,215,0,.2)}
-.r3-badge{background:rgba(0,229,255,.12);color:var(--r3);border:1px solid rgba(0,229,255,.2)}
 
-.kf-tag{background:rgba(255,215,0,.06);color:var(--r2);font-size:.6rem;padding:.1rem .4rem;border-radius:3px;border:1px solid rgba(255,215,0,.12);white-space:nowrap}
 .orig-link{color:var(--ac);text-decoration:none;font-weight:600;border:1px solid rgba(79,195,247,.15);padding:.15rem .5rem;border-radius:4px;font-size:.65rem;transition:background .2s}
 .orig-link:hover{background:rgba(79,195,247,.08)}
 
@@ -578,7 +490,7 @@ footer a{color:var(--ac)}
   header h1{font-size:1.4rem}
   .tab-btn{font-size:.7rem;padding:.5rem .8rem}
   .tabs{padding:0 .75rem}
-  .st,.ct,.fl,.facts-section{padding-left:.75rem;padding-right:.75rem}
+  .st,.ct,.fl{padding-left:.75rem;padding-right:.75rem}
 }
 </style>
 </head>
@@ -602,9 +514,6 @@ footer a{color:var(--ac)}
   <button class="tab-btn r2-tab" onclick="switchTab('r2')">✨ R2 <span class="badge">64</span> <span style="color:var(--mu);font-size:.65rem">May 22</span></button>
   <button class="tab-btn r3-tab" onclick="switchTab('r3')">🆕 R3 <span class="badge r3-badge">72</span> <span style="color:var(--mu);font-size:.65rem">Jun 12</span></button>
 </div>
-
-<div class="st-section active" id="sec-facts-r2">${buildR2FactsSection()}</div>
-<div class="st-section" id="sec-facts-r3">${buildR3FactsSection()}</div>
 
 <div class="st-section active" id="sec-stats-all"><div class="st">${buildStatCards(sAll)}</div></div>
 <div class="st-section" id="sec-stats-r1"><div class="st">${buildStatCards(s1)}</div></div>
@@ -660,20 +569,7 @@ function switchTab(tab) {
   const statsEl = document.getElementById('sec-stats-' + tab);
   if (statsEl) statsEl.classList.add('active');
   
-  // Show/hide facts sections
-  const factsR2 = document.getElementById('sec-facts-r2');
-  const factsR3 = document.getElementById('sec-facts-r3');
-  if (factsR2) factsR2.classList.remove('active');
-  if (factsR3) factsR3.classList.remove('active');
-  if (tab === 'all') {
-    // Show the most recent facts section
-    if (factsR3) factsR3.classList.add('active');
-  } else if (tab === 'r2' && factsR2) {
-    factsR2.classList.add('active');
-  } else if (tab === 'r3' && factsR3) {
-    factsR3.classList.add('active');
-  }
-  
+
   document.querySelectorAll('.fl-section').forEach(s => s.classList.remove('active'));
   const flEl = document.getElementById('sec-fl-' + tab);
   if (flEl) flEl.classList.add('active');
